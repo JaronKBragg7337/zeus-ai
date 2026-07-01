@@ -9,8 +9,9 @@
     "typecheck": "tsc -b --noEmit",
     "lint": "oxlint",
     "preview": "vite preview",
-    "desktop:dev": "tauri dev",
-    "desktop:build": "tauri build"
+    "backend:sidecar:win": "powershell -ExecutionPolicy Bypass -File ../scripts/build-backend-sidecar.ps1",
+    "desktop:dev": "pnpm backend:sidecar:win && pnpm exec tauri dev",
+    "desktop:build": "pnpm backend:sidecar:win && pnpm exec tauri build"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.2",

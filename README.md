@@ -36,7 +36,17 @@ Open `http://localhost:3000`.
 
 ## Desktop App
 
-Zeus AI now includes a first-pass Tauri desktop shell. It opens the existing React app in a native Windows desktop window.
+Zeus AI includes a Tauri desktop shell. Desktop dev/build commands generate a local FastAPI backend sidecar with PyInstaller, bundle it with Tauri, and start it automatically when the desktop app opens.
+
+The sidecar uses:
+
+- `ZEUSAI_DESKTOP=1`
+- `ZEUSAI_FULL_COMPUTER_ACCESS=1`
+- `ZEUSAI_COMMAND_RISK_POLICY=log`
+- `ZEUSAI_BACKEND_HOST=127.0.0.1`
+- `ZEUSAI_BACKEND_PORT=8000`
+
+Closing the desktop window stops the backend sidecar process tree.
 
 Development:
 
@@ -53,7 +63,17 @@ cd frontend
 npm run desktop:build
 ```
 
-Current desktop limitation: the Python/FastAPI backend still runs as a local companion process. The next packaging step is bundling the backend as a Tauri sidecar so end users can install one desktop app without manually starting Python.
+Build outputs are created under `frontend/src-tauri/target/release/`. On Windows, the full build produces:
+
+- `frontend/src-tauri/target/release/zeus-ai-desktop.exe`
+- `frontend/src-tauri/target/release/bundle/msi/Zeus AI_0.1.0_x64_en-US.msi`
+- `frontend/src-tauri/target/release/bundle/nsis/Zeus AI_0.1.0_x64-setup.exe`
+
+The generated backend sidecar binary lives under `frontend/src-tauri/binaries/` and is intentionally ignored by Git. Rebuild it with:
+
+```powershell
+.\scripts\build-backend-sidecar.ps1
+```
 
 If `uv` is not installed, use:
 
@@ -204,7 +224,7 @@ npm run typecheck
 
 ## Known Limitations
 
-- The desktop shell exists, but the backend still needs sidecar packaging for one-click installation.
+- The desktop app has Windows sidecar packaging now; macOS/Linux desktop packaging has not been verified.
 - The default RAG fallback is lexical, not embedding-based semantic search.
 - Full-computer use is supported through environment configuration today; it needs a proper desktop settings UI.
 - APIs/connectors/MCP are planned but not built in yet.

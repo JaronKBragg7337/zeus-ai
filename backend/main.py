@@ -244,8 +244,13 @@ async def query_rag(req: RAGQuery):
 async def startup():
     await rag_engine.initialize()
     print("Zeus AI Workbench started!")
-    print("Open http://localhost:8000 in your browser after starting the frontend.")
+    if os.getenv("ZEUSAI_DESKTOP") == "1":
+        print("Desktop sidecar backend is running.")
+    else:
+        print("Open http://localhost:8000 in your browser after starting the frontend.")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    host = os.getenv("ZEUSAI_BACKEND_HOST", "127.0.0.1")
+    port = int(os.getenv("ZEUSAI_BACKEND_PORT", "8000"))
+    uvicorn.run(app, host=host, port=port)

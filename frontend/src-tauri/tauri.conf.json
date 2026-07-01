@@ -28,6 +28,9 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "externalBin": [
+      "binaries/zeus-backend"
+    ],
     "icon": [
       "icons/icon.ico",
       "icons/icon.png"
