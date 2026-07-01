@@ -6,8 +6,9 @@ import ModelManager from './components/ModelManager'
 import RAGPanel from './components/RAGPanel'
 import AgentPanel from './components/AgentPanel'
 import TrainingReviewPanel from './components/TrainingReviewPanel'
+import KnowledgePanel from './components/KnowledgePanel'
 
-export type PanelType = 'chat' | 'agent' | 'files' | 'models' | 'rag' | 'training'
+export type PanelType = 'chat' | 'agent' | 'files' | 'models' | 'rag' | 'training' | 'knowledge'
 
 function App() {
   const [activePanel, setActivePanel] = useState<PanelType>('chat')
@@ -25,6 +26,8 @@ function App() {
         return <ModelManager selectedModel={selectedModel} onSelectModel={setSelectedModel} />
       case 'rag':
         return <RAGPanel />
+      case 'knowledge':
+        return <KnowledgePanel />
       case 'training':
         return <TrainingReviewPanel />
       default:

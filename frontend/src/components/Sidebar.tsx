@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ElementType } from 'react'
-import { MessageSquare, Bot, FolderOpen, Brain, Database, Settings, Cpu, Power, RotateCcw, ClipboardCheck } from 'lucide-react'
+import { MessageSquare, Bot, FolderOpen, Brain, Database, Settings, Cpu, Power, RotateCcw, ClipboardCheck, BookOpen } from 'lucide-react'
 import type { PanelType } from '../App'
 
 interface SidebarProps {
@@ -13,6 +13,7 @@ const navItems: { id: PanelType; label: string; icon: ElementType }[] = [
   { id: 'agent', label: 'Agent', icon: Bot },
   { id: 'files', label: 'Files', icon: FolderOpen },
   { id: 'rag', label: 'Documents', icon: Database },
+  { id: 'knowledge', label: 'Knowledge', icon: BookOpen },
   { id: 'models', label: 'Models', icon: Brain },
   { id: 'training', label: 'Training Review', icon: ClipboardCheck },
 ]

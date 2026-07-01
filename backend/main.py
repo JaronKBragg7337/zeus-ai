@@ -12,13 +12,15 @@ from fastapi.responses import StreamingResponse
 
 from models import (
     ChatRequest, ChatMessage, ModelPullRequest,
-    ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery, TrainingCorrection, TrainingReview
+    ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery, TrainingCorrection, TrainingReview,
+    KnowledgeSearchRequest
 )
 from ollama_client import ollama
 from zeus_native_client import zeus_native
 from tools import get_tool_definitions, execute_tool, _resolve_allowed_path
 from agent import run_agent_task
 from rag_engine import rag_engine
+from knowledge_index import build_knowledge_index, knowledge_status, search_knowledge
 from config import UPLOAD_DIR, format_allowed_roots, is_full_computer_access_enabled, get_command_risk_policy, is_shell_enabled, is_native_model_enabled
 from audit_log import read_recent_actions
 from runtime_control import clear_stop, request_stop, status as runtime_status
@@ -358,6 +360,22 @@ async def delete_collection(name: str):
 @app.post("/api/rag/query")
 async def query_rag(req: RAGQuery):
     return await rag_engine.query(req.question, req.collection, req.top_k)
+
+
+# ─── Zeus Knowledge ───
+@app.get("/api/knowledge/status")
+async def knowledge_index_status():
+    return knowledge_status()
+
+
+@app.post("/api/knowledge/index")
+async def knowledge_index_rebuild():
+    return build_knowledge_index()
+
+
+@app.post("/api/knowledge/search")
+async def knowledge_search(req: KnowledgeSearchRequest):
+    return search_knowledge(req.query, req.top_k)
 
 # ─── Startup ───
 @app.on_event("startup")

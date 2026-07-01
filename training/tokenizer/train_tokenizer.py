@@ -15,14 +15,21 @@ TOKEN_RE = re.compile(r"<\|[^|]+\|>|[A-Za-z0-9_:\\./\\\\-]+|[^\s]", re.UNICODE)
 
 
 def iter_texts(root: Path):
-    candidates = [
+    approved_files = [
+        root / "data" / "instruction_examples" / "seed.jsonl",
+        root / "data" / "instruction_examples" / "approved.jsonl",
+    ]
+    for path in approved_files:
+        if path.exists():
+            yield path.read_text(encoding="utf-8", errors="replace")
+
+    optional_dirs = [
         root / "data" / "raw",
-        root / "data" / "instruction_examples",
         root / "data" / "processed",
         root / "data" / "project_docs",
         root / "data" / "decisions",
     ]
-    for base in candidates:
+    for base in optional_dirs:
         if not base.exists():
             continue
         for path in base.rglob("*"):

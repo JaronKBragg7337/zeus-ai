@@ -127,3 +127,33 @@ Follow-up:
 
 - Add quality labels and evaluator training for failed/corrected examples.
 - Add local knowledge indexing that feeds RAG without changing model behavior.
+
+## 2026-07-01 - Knowledge Index and Evaluator Data
+
+Goal:
+Give Zeus a local factual knowledge lane and a separate scoring/evaluator lane.
+
+What changed:
+
+- Added local knowledge indexer under `backend/knowledge_index.py`.
+- Added knowledge status, rebuild, and search API endpoints.
+- Added desktop Zeus Knowledge panel.
+- Added evaluator seed examples under `data/evaluator_examples/seed.jsonl`.
+- Added `training/data/build_evaluator_dataset.py`.
+- Tightened tokenizer training so pending/rejected instruction examples are not swept into the tokenizer by default.
+- Updated docs and handoff files for the new lanes.
+
+Verification:
+
+- Backend/training syntax checks passed.
+- Backend tests passed.
+- Default behavior dataset built from seed plus approved examples.
+- Evaluator dataset built from seed/review/correction sources.
+- Frontend typecheck passed.
+- Frontend production build passed.
+
+Follow-up:
+
+- Add semantic embeddings as an optional local-only upgrade for Zeus Knowledge.
+- Add a trained Zeus evaluator model once enough reviewed data exists.
+- Add a first-run desktop setup screen for knowledge folders and training-data policy.

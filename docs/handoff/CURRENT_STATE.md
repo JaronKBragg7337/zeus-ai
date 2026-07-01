@@ -28,10 +28,10 @@ Current branch:
 master
 ```
 
-Latest known commit before this file:
+To find the exact latest commit:
 
-```text
-07a53fe Add training review queue and knowledge lane
+```powershell
+git log -1 --oneline
 ```
 
 ## Where To Start
@@ -126,4 +126,3 @@ Packaged smoke pattern:
 - `knowledge/*` generated/user docs except `.gitkeep` and `knowledge/README.md`
 - model weights/checkpoints
 - secrets or API keys
-

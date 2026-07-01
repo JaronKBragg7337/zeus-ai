@@ -40,6 +40,7 @@ The scripts here do not load Qwen, Llama, Mistral, or any pretrained model. The 
 ```text
 data/
   raw/                  local source text you choose to add
+  evaluator_examples/   seed evaluator/scoring examples
   instruction_examples/ seed, candidate, approved, and rejected examples
   conversations/        optional exported conversations
   tool_traces/          optional tool/action traces
@@ -131,6 +132,29 @@ python training/data/build_dataset.py --include-knowledge
 ```
 
 Use the opt-in flags carefully. Pending candidates, failed traces, and knowledge docs are valuable, but they should not automatically become positive behavior examples.
+
+## Evaluator Data
+
+Build evaluator/scoring data separately:
+
+```powershell
+python training/data/build_evaluator_dataset.py
+```
+
+Output:
+
+```text
+data/processed/zeus_evaluator.jsonl
+```
+
+This uses:
+
+- `data/evaluator_examples/seed.jsonl`
+- `data/instruction_examples/approved.jsonl`
+- `data/instruction_examples/rejected.jsonl`
+- `data/tool_traces/user_corrections.jsonl`
+
+Use this data for future Zeus evaluators that decide whether an example should be approved, rejected, or revised. Do not mix this with the main behavior-training corpus unless that is an explicit experiment.
 
 ## Honest Expectations
 

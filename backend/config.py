@@ -14,6 +14,7 @@ LOG_DIR = BACKEND_DIR / "logs"
 DATA_DIR = PROJECT_ROOT / "data"
 TRAINING_DIR = PROJECT_ROOT / "training"
 ZEUS_NATIVE_DIR = PROJECT_ROOT / "models" / "zeus-tiny"
+KNOWLEDGE_DIR = PROJECT_ROOT / "knowledge"
 
 
 def get_allowed_roots() -> List[Path]:
@@ -67,6 +68,23 @@ def get_data_dir() -> Path:
         local_app_data = Path(os.getenv("LOCALAPPDATA", Path.home()))
         return local_app_data / "Zeus AI" / "data"
     return DATA_DIR
+
+
+def get_knowledge_dir() -> Path:
+    raw = os.getenv("ZEUSAI_KNOWLEDGE_DIR")
+    if raw:
+        return Path(raw).expanduser()
+    if os.getenv("ZEUSAI_DESKTOP") == "1" and os.name == "nt":
+        local_app_data = Path(os.getenv("LOCALAPPDATA", Path.home()))
+        return local_app_data / "Zeus AI" / "knowledge"
+    return KNOWLEDGE_DIR
+
+
+def get_knowledge_index_dir() -> Path:
+    raw = os.getenv("ZEUSAI_KNOWLEDGE_INDEX_DIR")
+    if raw:
+        return Path(raw).expanduser()
+    return get_knowledge_dir() / "index"
 
 
 def is_training_capture_enabled() -> bool:

@@ -144,6 +144,25 @@ In the packaged desktop app, generated training data defaults to `%LOCALAPPDATA%
 
 Knowledge is separate from training data. Put factual reference material under `knowledge/`; put behavior examples under `data/instruction_examples/`.
 
+Zeus Knowledge can be indexed and searched locally:
+
+```powershell
+Invoke-RestMethod -Method Post http://localhost:8000/api/knowledge/index
+Invoke-RestMethod -Method Post http://localhost:8000/api/knowledge/search -ContentType "application/json" -Body '{"query":"what does this manual say?","top_k":5}'
+```
+
+The desktop app includes a Knowledge panel for rebuilding and searching the local index.
+
+In the packaged desktop app, Zeus Knowledge defaults to `%LOCALAPPDATA%\Zeus AI\knowledge`.
+
+Evaluator/scoring data can be built separately:
+
+```powershell
+python training/data/build_evaluator_dataset.py
+```
+
+This writes `data/processed/zeus_evaluator.jsonl` from seed evaluator examples plus local approved/rejected/corrected examples.
+
 To route backend chat through Zeus-Tiny:
 
 ```powershell
@@ -171,6 +190,7 @@ API:
 - Audit log: `GET http://localhost:8000/api/audit/actions`
 - File list/read/write: constrained to allowed roots
 - RAG upload/query: local only
+- Knowledge status/index/search: local factual retrieval under `knowledge/`
 
 By default, file access is limited to the repo root. To allow additional project folders:
 

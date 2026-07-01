@@ -90,3 +90,8 @@ class TrainingReview(BaseModel):
     reviewer: str = "user"
     notes: Optional[str] = None
     label: Optional[str] = None
+
+
+class KnowledgeSearchRequest(BaseModel):
+    query: str
+    top_k: int = 5

@@ -13,7 +13,7 @@ from agent import run_agent_task
 from tools import execute_tool
 from prompts import build_zeus_system_prompt
 from zeus_native_client import ZeusNativeClient
-from config import get_data_dir
+from config import get_data_dir, get_knowledge_dir
 
 
 @pytest.fixture(autouse=True)
@@ -63,6 +63,14 @@ def test_desktop_data_dir_uses_local_app_data(tmp_path, monkeypatch):
     assert get_data_dir() == tmp_path / "Zeus AI" / "data"
 
 
+def test_desktop_knowledge_dir_uses_local_app_data(tmp_path, monkeypatch):
+    monkeypatch.delenv("ZEUSAI_KNOWLEDGE_DIR", raising=False)
+    monkeypatch.setenv("ZEUSAI_DESKTOP", "1")
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+
+    assert get_knowledge_dir() == tmp_path / "Zeus AI" / "knowledge"
+
+
 def test_file_listing_defaults_to_project_root():
     with TestClient(app) as client:
         response = client.post("/api/files/list", json={"path": "."})
@@ -95,6 +103,30 @@ def test_local_rag_ingest_and_query():
     assert upload.json()["status"] in {"success", "already_exists"}
     assert query.status_code == 200
     assert "local-only" in query.json()["context"]
+
+
+def test_knowledge_index_builds_and_searches(tmp_path, monkeypatch):
+    knowledge_root = tmp_path / "knowledge"
+    manual_dir = knowledge_root / "manuals"
+    manual_dir.mkdir(parents=True)
+    (manual_dir / "zeus-manual.md").write_text(
+        "Zeus Knowledge fact: approved examples should train behavior, while manuals should feed retrieval.",
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("ZEUSAI_KNOWLEDGE_DIR", str(knowledge_root))
+
+    with TestClient(app) as client:
+        status_before = client.get("/api/knowledge/status")
+        built = client.post("/api/knowledge/index")
+        search = client.post("/api/knowledge/search", json={"query": "What should manuals feed?", "top_k": 3})
+
+    assert status_before.status_code == 200
+    assert status_before.json()["source_file_count"] == 1
+    assert built.status_code == 200
+    assert built.json()["files_indexed"] == 1
+    assert built.json()["chunks"] == 1
+    assert search.status_code == 200
+    assert "manuals should feed retrieval" in search.json()["context"]
 
 
 def test_agent_lists_files_without_shell_or_llm_wait():

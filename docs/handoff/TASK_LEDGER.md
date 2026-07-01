@@ -13,13 +13,14 @@ Status keys:
 
 | ID | Status | Owner Role | Task | Notes |
 | --- | --- | --- | --- | --- |
-| Z-001 | doing | Codex 5.5 | Add local knowledge indexing and search | Knowledge must stay separate from behavior training. |
-| Z-002 | doing | Codex 5.5 | Add evaluator/scoring dataset generation from reviewed examples | Use approved/rejected/corrected examples. |
-| Z-003 | doing | Codex 5.5 | Make Zeus-Tiny training path clearly consume approved examples | Dataset builder already defaults to seed + approved; add evaluator path and docs. |
+| Z-001 | done | Codex 5.5 | Add local knowledge indexing and search | Added backend endpoints and desktop Knowledge panel. |
+| Z-002 | done | Codex 5.5 | Add evaluator/scoring dataset generation from reviewed examples | Added seed evaluator data and dataset builder. |
+| Z-003 | done | Codex 5.5 | Make Zeus-Tiny training path clearly consume approved examples | Tightened dataset/tokenizer path around seed + approved examples. |
 | Z-004 | todo | Claude Cowork Sonnet | Architecture review for knowledge/index/training boundaries | Review after Codex implementation lands. |
 | Z-005 | todo | Claude Cowork Opus | Risk and scaling critique for AWS training-gym plan | No cloud resources until user explicitly decides. |
 | Z-006 | todo | Fable 5 | Product framing and founder-system narrative | Fable maintains global state, handoff clarity, demos, promotion. |
 | Z-007 | todo | Claude Code Sonnet | Independent code review after local indexing lands | Focus on bugs, tests, packaging. |
+| Z-008 | todo | Codex 5.5 | Package and smoke-test final desktop build | Needed after Knowledge panel and backend endpoints are committed. |
 
 ## Current User Priorities
 
@@ -33,4 +34,3 @@ Status keys:
 ## Handoff Rule
 
 When a task changes status, update this file and `docs/implementation-log.md`.
-

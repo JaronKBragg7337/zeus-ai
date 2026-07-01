@@ -31,6 +31,7 @@ data/raw/*
 data/processed/*
 data/conversations/*
 data/tool_traces/*
+data/evaluator_examples/generated*.jsonl
 data/instruction_examples/generated*.jsonl
 data/instruction_examples/candidates.jsonl
 data/instruction_examples/approved.jsonl
