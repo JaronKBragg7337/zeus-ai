@@ -266,3 +266,12 @@ npm run typecheck
 - Full-computer use is supported through environment configuration today; it needs a proper desktop settings UI.
 - APIs/connectors/MCP are planned but not built in yet.
 - Future user-facing packaging should add install/update flows, first-run model checks, an action log viewer, connector management, and per-workspace automation policy.
+
+## Build Method Docs
+
+Zeus is also documenting the method used to build it so other people and future AI coworkers can repeat the path:
+
+- `docs/founder-system-blueprint.md`
+- `docs/ai-coworker-protocol.md`
+- `docs/implementation-log.md`
+- `docs/repeatable-build-playbook.md`
