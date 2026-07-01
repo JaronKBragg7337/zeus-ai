@@ -26,6 +26,21 @@ uploads/
 *.sqlite3
 *.db
 
+# Zeus-native local data and model artifacts
+data/raw/*
+data/processed/*
+data/conversations/*
+data/tool_traces/*
+data/code_tasks/*
+data/project_docs/*
+data/decisions/*
+!data/**/.gitkeep
+models/zeus-tiny/*
+!models/zeus-tiny/.gitkeep
+*.pt
+*.pth
+*.safetensors
+
 # Node / Vite
 node_modules/
 frontend/node_modules/

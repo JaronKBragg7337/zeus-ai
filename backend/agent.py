@@ -3,9 +3,11 @@ import json
 import re
 from typing import List, Dict, Any, AsyncIterator, Optional
 from ollama_client import ollama
+from zeus_native_client import zeus_native
 from tools import get_tool_definitions, execute_tool
 from runtime_control import stop_requested
 from prompts import build_zeus_system_prompt
+from config import is_native_model_enabled
 
 
 AGENT_INSTRUCTIONS = """You are in Agent mode and can use tools to accomplish tasks.
@@ -63,7 +65,8 @@ async def run_agent_task(task: str, model: str = "qwen3.5:4b",
         tool_calls = None
 
         # Stream the response to collect it
-        async for chunk in ollama.chat(messages, model=model, stream=False, tools=tools):
+        client = zeus_native if is_native_model_enabled() else ollama
+        async for chunk in client.chat(messages, model=model, stream=False, tools=tools):
             response_text += chunk
 
         # Check if model wants to use tools (parse from response for models that don't natively support tool calling)

@@ -11,6 +11,7 @@ from main import app
 from agent import run_agent_task
 from tools import execute_tool
 from prompts import build_zeus_system_prompt
+from zeus_native_client import ZeusNativeClient
 
 
 def test_health_endpoint_reports_allowed_roots():
@@ -22,6 +23,7 @@ def test_health_endpoint_reports_allowed_roots():
     assert data["status"] == "ok"
     assert data["allowed_roots"]
     assert "shell_enabled" in data
+    assert "native_model_enabled" in data
 
 
 def test_zeus_prompt_names_local_capabilities():
@@ -31,6 +33,19 @@ def test_zeus_prompt_names_local_capabilities():
     assert "not a generic hosted chatbot" in prompt
     assert "Do not say you cannot access this computer in blanket terms" in prompt
     assert "local tools" in prompt
+
+
+def test_native_client_reports_untrained_model(tmp_path, monkeypatch):
+    monkeypatch.setenv("ZEUSAI_NATIVE_MODEL_DIR", str(tmp_path / "missing-zeus-tiny"))
+    client = ZeusNativeClient()
+
+    async def generate():
+        return await client.generate("hello")
+
+    result = asyncio.run(generate())
+
+    assert "Zeus native mode is enabled" in result
+    assert "Zeus-Tiny has not been trained yet" in result
 
 
 def test_file_listing_defaults_to_project_root():

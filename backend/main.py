@@ -15,10 +15,11 @@ from models import (
     ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery
 )
 from ollama_client import ollama
+from zeus_native_client import zeus_native
 from tools import get_tool_definitions, execute_tool, _resolve_allowed_path
 from agent import run_agent_task
 from rag_engine import rag_engine
-from config import UPLOAD_DIR, format_allowed_roots, is_full_computer_access_enabled, get_command_risk_policy, is_shell_enabled
+from config import UPLOAD_DIR, format_allowed_roots, is_full_computer_access_enabled, get_command_risk_policy, is_shell_enabled, is_native_model_enabled
 from audit_log import read_recent_actions
 from runtime_control import clear_stop, request_stop, status as runtime_status
 from prompts import build_zeus_system_prompt
@@ -48,6 +49,7 @@ async def health():
         "allowed_roots": format_allowed_roots(),
         "full_computer_access": is_full_computer_access_enabled(),
         "shell_enabled": is_shell_enabled(),
+        "native_model_enabled": is_native_model_enabled(),
         "command_risk_policy": get_command_risk_policy(),
         "runtime": runtime_status(),
     }
@@ -113,13 +115,14 @@ async def chat(req: ChatRequest):
     tools = get_tool_definitions() if req.use_tools else None
 
     async def stream_response():
-        if req.use_tools:
+        if req.use_tools and not is_native_model_enabled():
             async for chunk in _stream_chat_with_tools(messages, req, tools or []):
                 yield chunk
             return
 
         full_response = ""
-        async for chunk in ollama.chat(messages, req.model, req.stream, req.temperature, tools):
+        client = zeus_native if is_native_model_enabled() else ollama
+        async for chunk in client.chat(messages, req.model, req.stream, req.temperature, tools):
             full_response += chunk
             yield _sse_data(chunk)
         yield "data: [DONE]\n\n"

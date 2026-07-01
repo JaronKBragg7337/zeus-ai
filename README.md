@@ -4,6 +4,8 @@ Zeus AI Workbench is a local FastAPI + React/Vite app for working with Ollama mo
 
 The app does not require cloud APIs, paid services, secrets, API keys, or telemetry.
 
+Zeus now also includes the first Zeus-native model track. Ollama/Qwen can remain a temporary runtime or communication layer, but `training/` contains a from-scratch `Zeus-Tiny` path for building local Zeus-owned weights over time.
+
 ## Requirements
 
 - Windows 11, macOS, or Linux
@@ -104,6 +106,28 @@ The backend model endpoint should return installed models:
 ```powershell
 Invoke-RestMethod http://localhost:8000/api/models
 ```
+
+## Zeus-Native Model Track
+
+The long-term goal is not to hide Qwen behind a Zeus label. The repo has a native model path for training Zeus-owned weights from scratch:
+
+```powershell
+python training/data/build_dataset.py
+python training/tokenizer/train_tokenizer.py
+python training/pretrain/train_zeus_tiny.py
+python training/inference/zeus_tiny_infer.py --prompt "Classify this task"
+```
+
+`Zeus-Tiny` starts as a small specialist model for routing, tool-call formatting, memory classification, planning, and result review. It is expected to be weak at fluent chat until the dataset and compute grow.
+
+To route backend chat through Zeus-Tiny:
+
+```powershell
+$env:ZEUSAI_NATIVE_MODEL = "1"
+.\.venv\Scripts\python.exe backend\main.py
+```
+
+If no checkpoint exists yet, Zeus reports the training commands instead of silently falling back to Qwen.
 
 ## Backend
 

@@ -11,6 +11,9 @@ UPLOAD_DIR = BACKEND_DIR / "uploads"
 LOCAL_RAG_DIR = BACKEND_DIR / "local_rag_store"
 CHROMA_DB_DIR = BACKEND_DIR / "chroma_db"
 LOG_DIR = BACKEND_DIR / "logs"
+DATA_DIR = PROJECT_ROOT / "data"
+TRAINING_DIR = PROJECT_ROOT / "training"
+ZEUS_NATIVE_DIR = PROJECT_ROOT / "models" / "zeus-tiny"
 
 
 def get_allowed_roots() -> List[Path]:
@@ -46,6 +49,14 @@ def get_command_risk_policy() -> str:
 
 def is_full_computer_access_enabled() -> bool:
     return os.getenv("ZEUSAI_FULL_COMPUTER_ACCESS", "").lower() in {"1", "true", "yes", "on"}
+
+
+def is_native_model_enabled() -> bool:
+    return os.getenv("ZEUSAI_NATIVE_MODEL", "").lower() in {"1", "true", "yes", "on"}
+
+
+def get_native_model_dir() -> Path:
+    return Path(os.getenv("ZEUSAI_NATIVE_MODEL_DIR", ZEUS_NATIVE_DIR)).expanduser()
 
 
 def get_action_log_path() -> Path:
