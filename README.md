@@ -1,249 +1,155 @@
-# 🤖 OmniLocal AI Workbench
+# OmniLocal AI Workbench
 
-**Your Private, Local AI Command Center — 100% Free, 100% Offline, 100% Yours.**
+OmniLocal AI Workbench is a local FastAPI + React/Vite app for working with Ollama models, browsing an allowed project folder, running a constrained local agent, and indexing small documents for local RAG.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Ollama](https://img.shields.io/badge/Powered%20by-Ollama-ff6f00?logo=ollama)](https://ollama.ai)
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python)](https://python.org)
+The app does not require cloud APIs, paid services, secrets, API keys, or telemetry.
 
-OmniLocal is a fully self-hosted AI workbench that runs entirely on your machine. Chat with AI models, let agents execute tasks on your computer, query your documents, and manage your local models — all without sending a single byte to the cloud.
+## Requirements
 
----
+- Windows 11, macOS, or Linux
+- Python 3.10+
+- Node.js 20.19+ or 22.12+
+- Ollama running locally at `http://localhost:11434`
+- One local Ollama chat model, for example `llama3.2:3b` or `qwen3.5:4b`
+- Recommended on Windows: `uv` for Python installs and `pnpm` for frontend installs
 
-## 🔥 What Makes This Different
+## Windows Quickstart
 
-| Feature | OmniLocal | ChatGPT | Claude | Cursor |
-|---------|-----------|---------|--------|--------|
-| **100% Local** | ✅ No internet needed | ❌ Cloud-only | ❌ Cloud-only | ❌ Cloud sync |
-| **Zero API Costs** | ✅ Completely free | 💰 $20/mo | 💰 $20/mo | 💰 $20/mo |
-| **Agent Tools** | ✅ Files, shell, search | ❌ | ❌ Code only | ❌ Limited |
-| **Document RAG** | ✅ Local embeddings | ✅ Cloud stored | ✅ Cloud stored | ❌ |
-| **Code Editor** | ✅ Built-in file editor | ❌ | ❌ | ✅ Full IDE |
-| **Model Manager** | ✅ Install any Ollama model | ❌ GPT only | ❌ Claude only | ❌ Limited |
-| **Privacy** | ✅ Data never leaves PC | ❌ Server processed | ❌ Server processed | ⚠️ Synced |
-
----
-
-## ✨ Features
-
-### 💬 AI Chat
-- Multi-model chat interface — switch between any installed Ollama model
-- Streaming responses with real-time typing indicator
-- Toggle **Tool Use** to let AI read files, run commands, search your codebase
-- Toggle **RAG** to ask questions about your uploaded documents
-
-### 🔧 AI Agent Mode
-- Multi-step autonomous task execution
-- Built-in tools: file read/write, directory listing, shell commands, file search, project structure analysis, calculations
-- The AI reasons through tasks step-by-step, using tools as needed
-- Perfect for: code analysis, refactoring, documentation generation, system administration
-
-### 📁 File Manager
-- Browse your filesystem with a clean tree view
-- Read and edit files directly in the browser
-- Syntax-friendly display for code files
-- Navigate directories with breadcrumb-style path
-
-### 📚 Document RAG (Retrieval Augmented Generation)
-- Upload PDF, DOCX, TXT, MD, and code files
-- Local sentence-transformer embeddings (no API calls)
-- Ask questions about your documents and get grounded answers
-- Organize documents into named collections
-
-### 🧠 Model Manager
-- View installed Ollama models with size and parameter info
-- Install new models with one click (curated recommendations for your hardware)
-- Delete models to free up space
-- Hardware-aware recommendations for 8GB VRAM systems
-
----
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-1. **[Ollama](https://ollama.ai)** — Install and make sure it's running
-2. **[Python 3.10+](https://python.org)** — Required for the backend
-3. **[Node.js 18+](https://nodejs.org)** — Required for the frontend
-
-### Option 1: Windows Batch Script (Easiest)
-
-```bash
-# Double-click or run in Command Prompt:
-start.bat
-```
-
-### Option 2: PowerShell Script
+From the repo root:
 
 ```powershell
-# Run in PowerShell:
-.\start.ps1
+python -m venv .venv
+uv pip install --python .\.venv\Scripts\python.exe -r backend\requirements.txt
+.\.venv\Scripts\python.exe backend\main.py
 ```
 
-### Option 3: Manual Start
+In a second terminal:
 
-```bash
-# Terminal 1 — Backend
-cd backend
-pip install -r requirements.txt
-python main.py
-
-# Terminal 2 — Frontend (new terminal)
+```powershell
 cd frontend
+pnpm install
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+If `uv` is not installed, use:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+```
+
+If `pnpm` is not installed, try:
+
+```powershell
 npm install --no-bin-links
 npm run dev
-
-# Open http://localhost:3000 in your browser
 ```
 
----
+## Ollama Setup
 
-## 📋 First Time Setup
+Start Ollama, then install a model if needed:
 
-### 1. Install Ollama Models
-
-OmniLocal doesn't come with AI models — you choose what to install. For your **RTX 4060 8GB**:
-
-```bash
-# Best all-rounder (recommended)
-ollama pull qwen3.5:4b
-
-# Fast and lightweight
+```powershell
 ollama pull llama3.2:3b
-
-# Strong reasoning
-ollama pull deepseek-r1:7b
-
-# Code-focused
-ollama pull codellama:7b
+ollama pull qwen3.5:4b
+ollama list
 ```
 
-### 2. Verify Everything Works
+The backend model endpoint should return installed models:
 
-Open http://localhost:3000 and:
-1. Go to **Models** tab — you should see your installed models
-2. Click **Select** on your preferred model
-3. Go to **Chat** tab and send a message
-4. Try asking: "What can you help me with?"
-
----
-
-## 🛠️ System Requirements
-
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| **GPU VRAM** | 4GB | 8GB+ |
-| **RAM** | 8GB | 16GB+ |
-| **Storage** | 10GB free | 50GB+ for models |
-| **OS** | Windows 10/11, Linux, macOS | Windows 11 |
-| **CPU** | Any modern CPU | 6+ cores |
-
----
-
-## 📁 Project Structure
-
-```
-omnilocal-ai/
-├── backend/              # Python FastAPI backend
-│   ├── main.py           # API server
-│   ├── ollama_client.py  # Ollama integration
-│   ├── tools.py          # Agent tools (file, shell, search)
-│   ├── agent.py          # Multi-step agent logic
-│   ├── rag_engine.py     # Local RAG with embeddings
-│   └── requirements.txt  # Python dependencies
-├── frontend/             # React + Vite frontend
-│   ├── src/
-│   │   ├── components/   # UI panels
-│   │   ├── App.tsx       # Main app
-│   │   └── index.css     # Styles
-│   └── package.json
-├── start.bat             # Windows startup
-├── start.ps1             # PowerShell startup
-└── README.md
+```powershell
+Invoke-RestMethod http://localhost:8000/api/models
 ```
 
----
+## Backend
 
-## 🔒 Privacy & Security
+Manual start:
 
-- **No external API calls** — Everything runs on your machine
-- **No data collection** — Zero telemetry, zero tracking
-- **No cloud dependencies** — Works fully offline
-- **Your models, your data** — Models downloaded to your machine only
-- **Local embeddings** — Document vectors computed locally, never uploaded
+```powershell
+.\.venv\Scripts\python.exe backend\main.py
+```
 
----
+API:
 
-## 🧩 Tech Stack
+- Health: `http://localhost:8000/api/health`
+- Models: `http://localhost:8000/api/models`
+- Chat: `POST http://localhost:8000/api/chat`
+- File list/read/write: constrained to allowed roots
+- RAG upload/query: local only
 
-**Backend:**
-- FastAPI — High-performance Python API
-- Ollama — Local LLM inference
-- ChromaDB — Local vector database
-- Sentence-Transformers — CPU-based embeddings
-- PyPDF / python-docx — Document parsing
+By default, file access is limited to the repo root. To allow additional project folders:
 
-**Frontend:**
-- React 19 + TypeScript
-- Vite — Fast builds
-- Tailwind CSS — Styling
-- Lucide React — Icons
+```powershell
+$env:OMNILOCAL_ALLOWED_ROOTS = "G:\My Drive\Codex Coworker\omnilocal-ai;C:\path\to\another\project"
+.\.venv\Scripts\python.exe backend\main.py
+```
 
----
+Shell command execution is disabled by default. To enable it for allowed roots only:
 
-## 🌟 Why I Built This
+```powershell
+$env:OMNILOCAL_ENABLE_SHELL = "1"
+```
 
-The AI landscape is dominated by cloud services that charge subscriptions and process your data on their servers. I believe everyone deserves access to powerful AI tools that respect their privacy and don't require ongoing payments.
+## Frontend
 
-OmniLocal is designed to be:
-- **Accessible** — Works on consumer hardware (tested on RTX 4060 8GB)
-- **Useful** — Real tools for real work, not just chat
-- **Transparent** — Fully open source, no black boxes
-- **Yours** — You own it, you control it, it works offline
+Manual start:
 
----
+```powershell
+cd frontend
+pnpm install
+npm run dev
+```
 
-## 🚧 Roadmap
+Production build:
 
-- [x] Multi-model chat with streaming
-- [x] AI Agent with tool use (files, shell, search)
-- [x] Local RAG for document Q&A
-- [x] File browser and editor
-- [x] Model manager
-- [ ] Code syntax highlighting in chat
-- [ ] Conversation history and persistence
-- [ ] Multi-modal support (images, audio)
-- [ ] Plugin system for custom tools
-- [ ] Desktop app packaging (Tauri/Electron)
+```powershell
+npm run build
+npm run typecheck
+```
 
----
+The frontend expects the backend on `http://localhost:8000` and runs on `http://localhost:3000`.
 
-## 🤝 Contributing
+## Tests
 
-This project is open source and contributions are welcome! Whether it's bug fixes, new features, or documentation improvements — all help is appreciated.
+Backend syntax and tests:
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+```powershell
+.\.venv\Scripts\python.exe -m compileall backend
+.\.venv\Scripts\python.exe -m pytest backend\tests
+```
 
----
+Frontend build checks:
 
-## 📄 License
+```powershell
+cd frontend
+npm run build
+npm run typecheck
+```
 
-MIT License — free for personal and commercial use.
+## Security Notes
 
----
+- No cloud LLM APIs are used.
+- The app talks to local Ollama only.
+- File browsing and file writes are restricted to `OMNILOCAL_ALLOWED_ROOTS`.
+- The default allowed root is this repo.
+- Uploaded RAG files are stored under `backend/uploads/`, which is ignored by Git.
+- Local RAG stores are ignored by Git.
+- Shell execution is disabled unless `OMNILOCAL_ENABLE_SHELL=1`.
+- This is a local developer tool and does not include authentication. Do not expose it to a public network.
 
-## 🙏 Acknowledgments
+## Troubleshooting
 
-- [Ollama](https://ollama.ai) — Making local LLMs accessible
-- [Qwen](https://github.com/QwenLM/Qwen) — Excellent small models for consumer hardware
-- [Meta Llama](https://llama.meta.com) — Open foundation models
-- [ChromaDB](https://trychroma.com) — Open-source vector database
+- `Ollama connection failed`: start Ollama and verify `ollama list`.
+- `Path is outside allowed roots`: set `OMNILOCAL_ALLOWED_ROOTS` before starting the backend.
+- `pip install` stalls on Windows: use `uv pip install --python .\.venv\Scripts\python.exe -r backend\requirements.txt`.
+- `npm install` fails under Google Drive: move or clone the repo to a normal local NTFS folder such as `C:\Users\<you>\source\omnilocal-ai`, then run frontend installs there. This repo was verified from a local `C:` copy because package extraction failed repeatedly in the Google Drive workspace.
+- RAG quality is basic by default: the core install uses a lightweight local lexical index. For heavier semantic RAG, install `backend/requirements-optional-rag.txt`.
 
----
+## Known Limitations
 
-**Built with ❤️ for the local AI community.**
-
-*Star this repo if you find it useful — it helps others discover it!*
+- The app is local-first and single-user; it is not packaged as a desktop app yet.
+- The default RAG fallback is lexical, not embedding-based semantic search.
+- The file manager is intentionally constrained to allowed roots.
+- Shell tools are opt-in because unrestricted shell access is unsafe.
+- Future user-facing app packaging should add install/update flows, first-run model checks, stronger permissions UI, and per-workspace settings.
