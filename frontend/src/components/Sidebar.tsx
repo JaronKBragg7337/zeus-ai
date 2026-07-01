@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react'
 import type { ElementType } from 'react'
-import { MessageSquare, Bot, FolderOpen, Brain, Database, Settings, Cpu } from 'lucide-react'
+import { MessageSquare, Bot, FolderOpen, Brain, Database, Settings, Cpu, Power, RotateCcw } from 'lucide-react'
 import type { PanelType } from '../App'
 
 interface SidebarProps {
@@ -15,7 +16,37 @@ const navItems: { id: PanelType; label: string; icon: ElementType }[] = [
   { id: 'models', label: 'Models', icon: Brain },
 ]
 
+const API_BASE = 'http://localhost:8000'
+
 export default function Sidebar({ activePanel, onPanelChange }: SidebarProps) {
+  const [stopRequested, setStopRequested] = useState(false)
+
+  const refreshControlStatus = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/control/status`)
+      const data = await res.json()
+      setStopRequested(Boolean(data.stop_requested))
+    } catch {
+      setStopRequested(false)
+    }
+  }
+
+  useEffect(() => {
+    refreshControlStatus()
+  }, [])
+
+  const toggleKillSwitch = async () => {
+    const endpoint = stopRequested ? 'resume' : 'kill'
+    try {
+      await fetch(`${API_BASE}/api/control/${endpoint}`, { method: 'POST' })
+      await refreshControlStatus()
+    } catch {
+      setStopRequested(false)
+    }
+  }
+
+  const KillIcon = stopRequested ? RotateCcw : Power
+
   return (
     <aside className="w-16 flex flex-col items-center py-4 bg-dark-900 border-r border-dark-800">
       {/* Logo */}
@@ -53,7 +84,18 @@ export default function Sidebar({ activePanel, onPanelChange }: SidebarProps) {
       </nav>
 
       {/* Bottom */}
-      <div className="mt-auto">
+      <div className="mt-auto flex flex-col gap-1">
+        <button
+          onClick={toggleKillSwitch}
+          className={`p-3 rounded-xl transition-all ${
+            stopRequested
+              ? 'bg-emerald-600/15 text-emerald-400 hover:bg-emerald-600/25'
+              : 'text-red-400 hover:text-red-300 hover:bg-red-600/10'
+          }`}
+          title={stopRequested ? 'Resume Zeus' : 'Stop Zeus'}
+        >
+          <KillIcon size={20} />
+        </button>
         <button className="p-3 rounded-xl text-dark-500 hover:text-dark-300 hover:bg-dark-800/50 transition-all" title="Settings">
           <Settings size={20} />
         </button>

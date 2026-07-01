@@ -6,7 +6,9 @@ import json
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
-from config import PROJECT_ROOT, format_allowed_roots, get_allowed_roots, is_shell_enabled
+from audit_log import append_action
+from config import PROJECT_ROOT, get_allowed_roots, get_command_risk_policy, is_shell_enabled
+from runtime_control import stop_requested
 
 
 MAX_TEXT_FILE_SIZE = 5 * 1024 * 1024
@@ -153,25 +155,55 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
 
 def execute_tool(name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
     """Execute a tool by name with given parameters."""
+    if stop_requested():
+        result = {"error": "Emergency stop is active. Resume Zeus AI before running tools."}
+        append_action({
+            "type": "tool",
+            "name": name,
+            "parameters": parameters,
+            "status": "blocked_by_kill",
+            "result": result,
+        })
+        return result
+
     try:
         if name == "read_file":
-            return _read_file(**parameters)
+            result = _read_file(**parameters)
         elif name == "write_file":
-            return _write_file(**parameters)
+            result = _write_file(**parameters)
         elif name == "list_files":
-            return _list_files(**parameters)
+            result = _list_files(**parameters)
         elif name == "run_command":
-            return _run_command(**parameters)
+            result = _run_command(**parameters)
         elif name == "search_files":
-            return _search_files(**parameters)
+            result = _search_files(**parameters)
         elif name == "get_project_structure":
-            return _get_project_structure(**parameters)
+            result = _get_project_structure(**parameters)
         elif name == "calculate":
-            return _calculate(**parameters)
+            result = _calculate(**parameters)
         else:
-            return {"error": f"Unknown tool: {name}"}
+            result = {"error": f"Unknown tool: {name}"}
     except Exception as e:
-        return {"error": str(e)}
+        result = {"error": str(e)}
+
+    append_action({
+        "type": "tool",
+        "name": name,
+        "parameters": parameters,
+        "status": "error" if "error" in result else "ok",
+        "result": _summarize_result(result),
+    })
+    return result
+
+
+def _summarize_result(result: Dict[str, Any]) -> Dict[str, Any]:
+    if "content" in result:
+        return {**result, "content": f"[{len(result.get('content', ''))} chars]"}
+    if "files" in result:
+        return {**result, "files": result["files"][:20], "file_count": len(result["files"])}
+    if "matches" in result:
+        return {**result, "matches": result["matches"][:20], "match_count": len(result["matches"])}
+    return result
 
 
 def _read_file(path: str) -> Dict[str, Any]:
@@ -228,8 +260,10 @@ def _run_command(command: str, cwd: str = ".") -> Dict[str, Any]:
         "format ", "shutdown", "restart-computer", "remove-item -recurse -force c:",
         "del /s /q c:", "rmdir /s /q c:",
     ]
-    for d in dangerous:
-        if d in command.lower():
+    risk_matches = [d for d in dangerous if d in command.lower()]
+    risk_policy = get_command_risk_policy()
+    if risk_matches and risk_policy == "block":
+        for d in risk_matches:
             return {"error": f"Blocked dangerous command containing: {d}"}
 
     try:
@@ -244,7 +278,9 @@ def _run_command(command: str, cwd: str = ".") -> Dict[str, Any]:
             "stdout": result.stdout[:10000] if result.stdout else "",
             "stderr": result.stderr[:5000] if result.stderr else "",
             "returncode": result.returncode,
-            "command": command
+            "command": command,
+            "risk_policy": risk_policy,
+            "risk_matches": risk_matches,
         }
     except subprocess.TimeoutExpired:
         return {"error": "Command timed out (60s)", "command": command}
@@ -290,8 +326,6 @@ def _get_project_structure(path: str, max_depth: int = 4) -> Dict[str, Any]:
         except PermissionError:
             return
         for i, entry in enumerate(entries):
-            if entry.name.startswith(".") and entry.name not in [".gitignore", ".env", ".github"]:
-                continue
             is_last = i == len(entries) - 1
             connector = "└── " if is_last else "├── "
             lines.append(f"{prefix}{connector}{entry.name}{'/' if entry.is_dir() else ''}")

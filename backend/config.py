@@ -1,5 +1,6 @@
 """Local runtime configuration for Zeus AI Workbench."""
 import os
+import string
 from pathlib import Path
 from typing import Iterable, List
 
@@ -9,11 +10,15 @@ BACKEND_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BACKEND_DIR / "uploads"
 LOCAL_RAG_DIR = BACKEND_DIR / "local_rag_store"
 CHROMA_DB_DIR = BACKEND_DIR / "chroma_db"
+LOG_DIR = BACKEND_DIR / "logs"
 
 
 def get_allowed_roots() -> List[Path]:
     """Return directories the app is allowed to browse or modify."""
     raw = os.getenv("ZEUSAI_ALLOWED_ROOTS") or os.getenv("OMNILOCAL_ALLOWED_ROOTS")
+    if is_full_computer_access_enabled() and not raw:
+        return _local_computer_roots()
+
     roots: Iterable[str] = raw.split(os.pathsep) if raw else [str(PROJECT_ROOT)]
     resolved = []
     for item in roots:
@@ -30,3 +35,29 @@ def format_allowed_roots() -> List[str]:
 def is_shell_enabled() -> bool:
     raw = os.getenv("ZEUSAI_ENABLE_SHELL") or os.getenv("OMNILOCAL_ENABLE_SHELL", "")
     return raw.lower() in {"1", "true", "yes", "on"}
+
+
+def get_command_risk_policy() -> str:
+    policy = os.getenv("ZEUSAI_COMMAND_RISK_POLICY", "log").lower()
+    if policy not in {"log", "warn", "block"}:
+        return "log"
+    return policy
+
+
+def is_full_computer_access_enabled() -> bool:
+    return os.getenv("ZEUSAI_FULL_COMPUTER_ACCESS", "").lower() in {"1", "true", "yes", "on"}
+
+
+def get_action_log_path() -> Path:
+    return Path(os.getenv("ZEUSAI_ACTION_LOG", LOG_DIR / "actions.jsonl")).expanduser()
+
+
+def _local_computer_roots() -> List[Path]:
+    if os.name == "nt":
+        roots = []
+        for letter in string.ascii_uppercase:
+            root = Path(f"{letter}:\\")
+            if root.exists():
+                roots.append(root.resolve())
+        return roots or [Path.home().resolve()]
+    return [Path("/").resolve()]

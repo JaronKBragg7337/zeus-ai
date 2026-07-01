@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 import asyncio
+import json
 
 from fastapi.testclient import TestClient
 
@@ -8,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from main import app
 from agent import run_agent_task
+from tools import execute_tool
 
 
 def test_health_endpoint_reports_allowed_roots():
@@ -66,3 +68,31 @@ def test_agent_lists_files_without_shell_or_llm_wait():
     assert any(update["type"] == "tool_call" and update["name"] == "list_files" for update in updates)
     assert updates[-1]["type"] == "complete"
     assert "backend" in updates[-1]["message"]
+
+
+def test_kill_switch_blocks_tool_execution():
+    with TestClient(app) as client:
+        killed = client.post("/api/control/kill", params={"reason": "pytest"})
+        result = client.post(
+            "/api/tools/execute",
+            json={"name": "calculate", "parameters": {"expression": "1 + 1"}},
+        )
+        resumed = client.post("/api/control/resume")
+
+    assert killed.status_code == 200
+    assert result.status_code == 200
+    assert "Emergency stop" in result.json()["error"]
+    assert resumed.json()["stopped"] is False
+
+
+def test_tool_execution_writes_audit_log(tmp_path, monkeypatch):
+    log_path = tmp_path / "actions.jsonl"
+    monkeypatch.setenv("ZEUSAI_ACTION_LOG", str(log_path))
+
+    result = execute_tool("calculate", {"expression": "2 + 2"})
+
+    assert result["result"] == "4"
+    entries = [json.loads(line) for line in log_path.read_text(encoding="utf-8").splitlines()]
+    assert entries[-1]["type"] == "tool"
+    assert entries[-1]["name"] == "calculate"
+    assert entries[-1]["status"] == "ok"

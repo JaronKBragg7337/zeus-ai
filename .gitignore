@@ -19,6 +19,7 @@ htmlcov/
 backend/.deps_installed
 backend/chroma_db/
 backend/local_rag_store/
+backend/logs/
 backend/uploads/
 uploads/
 *.sqlite

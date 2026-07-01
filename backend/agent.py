@@ -4,6 +4,7 @@ import re
 from typing import List, Dict, Any, AsyncIterator, Optional
 from ollama_client import ollama
 from tools import get_tool_definitions, execute_tool
+from runtime_control import stop_requested
 
 
 SYSTEM_PROMPT = """You are Zeus AI Agent, a helpful assistant that can use tools to accomplish tasks.
@@ -38,6 +39,10 @@ async def run_agent_task(task: str, model: str = "qwen3.5:4b",
 
     yield {"type": "status", "message": f"Starting task: {task}"}
 
+    if stop_requested():
+        yield {"type": "complete", "message": "Emergency stop is active. Resume Zeus AI before running agent tasks.", "steps": 0}
+        return
+
     if direct_tool:
         yield {"type": "tool_call", "name": direct_tool["name"], "parameters": direct_tool["parameters"]}
         result = execute_tool(direct_tool["name"], direct_tool["parameters"])
@@ -46,6 +51,10 @@ async def run_agent_task(task: str, model: str = "qwen3.5:4b",
         return
 
     while step < max_steps:
+        if stop_requested():
+            yield {"type": "complete", "message": "Emergency stop requested. Agent task halted.", "steps": step}
+            return
+
         step += 1
         yield {"type": "status", "message": f"Step {step}/{max_steps} - thinking..."}
 

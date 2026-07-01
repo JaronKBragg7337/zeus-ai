@@ -17,7 +17,9 @@ from ollama_client import ollama
 from tools import get_tool_definitions, execute_tool, _resolve_allowed_path
 from agent import run_agent_task
 from rag_engine import rag_engine
-from config import UPLOAD_DIR, format_allowed_roots
+from config import UPLOAD_DIR, format_allowed_roots, is_full_computer_access_enabled, get_command_risk_policy
+from audit_log import read_recent_actions
+from runtime_control import clear_stop, request_stop, status as runtime_status
 
 app = FastAPI(
     title="Zeus AI Workbench",
@@ -42,7 +44,26 @@ async def health():
         "status": "ok",
         "service": "zeus-ai",
         "allowed_roots": format_allowed_roots(),
+        "full_computer_access": is_full_computer_access_enabled(),
+        "command_risk_policy": get_command_risk_policy(),
+        "runtime": runtime_status(),
     }
+
+@app.get("/api/audit/actions")
+async def audit_actions(limit: int = 100):
+    return {"actions": read_recent_actions(limit)}
+
+@app.post("/api/control/kill")
+async def kill(reason: str = "manual"):
+    return request_stop(reason)
+
+@app.post("/api/control/resume")
+async def resume():
+    return clear_stop()
+
+@app.get("/api/control/status")
+async def control_status():
+    return runtime_status()
 
 # ─── Models ───
 @app.get("/api/models")

@@ -8,7 +8,9 @@
     "build": "vite build",
     "typecheck": "tsc -b --noEmit",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "desktop:dev": "tauri dev",
+    "desktop:build": "tauri build"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.2",
@@ -26,6 +28,7 @@
     "@vitejs/plugin-react": "^6.0.3",
     "oxlint": "^1.71.0",
     "typescript": "~6.0.2",
-    "vite": "^8.1.1"
+    "vite": "^8.1.1",
+    "@tauri-apps/cli": "^2.10.0"
   }
 }
