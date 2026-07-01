@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from main import app
-from agent import run_agent_task
+from agent import run_agent_task, _extract_native_tool_call
 from tools import execute_tool
 from prompts import build_zeus_system_prompt
 from zeus_native_client import ZeusNativeClient
@@ -149,6 +149,38 @@ def test_agent_lists_files_without_shell_or_llm_wait():
     assert any(update["type"] == "tool_call" and update["name"] == "list_files" for update in updates)
     assert updates[-1]["type"] == "complete"
     assert "backend" in updates[-1]["message"]
+
+
+def test_extract_native_tool_call_reads_ollama_tool_calls():
+    message = {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+            {"id": "call_1", "function": {"name": "calculate", "arguments": {"expression": "17*23"}}}
+        ],
+    }
+
+    call = _extract_native_tool_call(message)
+
+    assert call == {"name": "calculate", "parameters": {"expression": "17*23"}}
+
+
+def test_extract_native_tool_call_parses_string_arguments():
+    message = {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+            {"function": {"name": "list_files", "arguments": "{\"path\": \".\"}"}}
+        ],
+    }
+
+    call = _extract_native_tool_call(message)
+
+    assert call == {"name": "list_files", "parameters": {"path": "."}}
+
+
+def test_extract_native_tool_call_handles_missing_tool_calls():
+    assert _extract_native_tool_call({"role": "assistant", "content": "done"}) is None
 
 
 def test_kill_switch_blocks_tool_execution():

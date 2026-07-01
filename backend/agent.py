@@ -73,16 +73,17 @@ async def run_agent_task(task: str, model: str = "qwen3.5:4b",
         step += 1
         yield {"type": "status", "message": f"Step {step}/{max_steps} - thinking..."}
 
-        response_text = ""
-        tool_calls = None
-
-        # Stream the response to collect it
         client = zeus_native if is_native_model_enabled() else ollama
-        async for chunk in client.chat(messages, model=model, stream=False, tools=tools):
-            response_text += chunk
+        response_message = await client.chat_once(messages, model=model, tools=tools)
+        response_text = (response_message.get("content") or "").strip()
 
-        # Check if model wants to use tools (parse from response for models that don't natively support tool calling)
-        tool_call = _extract_tool_call(response_text)
+        # Prefer native Ollama tool calls: tool-capable models (for example qwen)
+        # return message.tool_calls with empty content, so content alone is not enough.
+        tool_call = _extract_native_tool_call(response_message)
+        if tool_call is None:
+            # Fall back to parsing tool calls out of plain text for models
+            # that do not support native tool calling.
+            tool_call = _extract_tool_call(response_text)
 
         if tool_call:
             tool_name = tool_call["name"]
@@ -96,12 +97,31 @@ async def run_agent_task(task: str, model: str = "qwen3.5:4b",
 
             yield {"type": "tool_result", "name": tool_name, "result": result}
 
-            # Add to conversation
+            # Add to conversation. If the model used a native tool call, its
+            # content is usually empty, so record the call itself for context.
             result_str = json.dumps(result, indent=2)[:4000]
-            messages.append({"role": "assistant", "content": response_text})
+            assistant_record = response_text or json.dumps(
+                {"tool_call": {"name": tool_name, "parameters": tool_params}}
+            )
+            messages.append({"role": "assistant", "content": assistant_record})
             messages.append({"role": "user", "content": f"Tool '{tool_name}' result:\n{result_str}\n\nContinue with the task."})
         else:
             # No tool call, task is done
+            if not response_text:
+                response_text = (
+                    "The model returned an empty response with no tool call. "
+                    "Try rephrasing the task or using a different model."
+                )
+                capture_agent_completion(
+                    task,
+                    response_text,
+                    project_path=project_path,
+                    steps=step,
+                    status="error",
+                    tool_events=tool_events,
+                )
+                yield {"type": "complete", "message": response_text, "steps": step}
+                break
             messages.append({"role": "assistant", "content": response_text})
             capture_agent_completion(
                 task,
@@ -151,6 +171,29 @@ def _summarize_direct_tool_result(tool_name: str, result: Dict[str, Any]) -> str
         return f"Top-level entries in {result.get('path', 'the requested folder')}: {', '.join(names)}{extra}."
 
     return "Task completed."
+
+
+def _extract_native_tool_call(message: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Extract a native tool call from an Ollama chat message.
+
+    Ollama returns tool calls as message.tool_calls with function name and
+    arguments. Arguments are usually a dict but may arrive as a JSON string.
+    """
+    for call in message.get("tool_calls") or []:
+        function = call.get("function") or {}
+        name = function.get("name")
+        if not name:
+            continue
+        arguments = function.get("arguments") or {}
+        if isinstance(arguments, str):
+            try:
+                arguments = json.loads(arguments)
+            except json.JSONDecodeError:
+                arguments = {}
+        if not isinstance(arguments, dict):
+            arguments = {}
+        return {"name": name, "parameters": arguments}
+    return None
 
 
 def _extract_tool_call(text: str) -> Optional[Dict[str, Any]]:
