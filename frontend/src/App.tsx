@@ -5,8 +5,9 @@ import FileManager from './components/FileManager'
 import ModelManager from './components/ModelManager'
 import RAGPanel from './components/RAGPanel'
 import AgentPanel from './components/AgentPanel'
+import TrainingReviewPanel from './components/TrainingReviewPanel'
 
-export type PanelType = 'chat' | 'agent' | 'files' | 'models' | 'rag'
+export type PanelType = 'chat' | 'agent' | 'files' | 'models' | 'rag' | 'training'
 
 function App() {
   const [activePanel, setActivePanel] = useState<PanelType>('chat')
@@ -24,6 +25,8 @@ function App() {
         return <ModelManager selectedModel={selectedModel} onSelectModel={setSelectedModel} />
       case 'rag':
         return <RAGPanel />
+      case 'training':
+        return <TrainingReviewPanel />
       default:
         return <ChatPanel selectedModel={selectedModel} />
     }

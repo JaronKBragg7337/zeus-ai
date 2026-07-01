@@ -58,9 +58,15 @@ Every major Zeus workflow should eventually follow this loop:
 
 7. **Train**
    - Capture tool traces, corrections, completions, and decisions.
-   - Review and clean data before serious model training.
+   - Store them as candidate examples first.
+   - Review, label, approve, or reject them before serious model training.
 
-8. **Promote**
+8. **Know**
+   - Store factual reference material separately from behavior training.
+   - Index manuals, research, books, code docs, and project docs for retrieval.
+   - Do not train model behavior directly on knowledge unless that is an intentional experiment.
+
+9. **Promote**
    - Prepare screenshots, demos, release notes, landing copy, and user onboarding when the product is ready.
 
 ## Systems Zeus Should Grow Toward
@@ -88,8 +94,9 @@ Zeus should record:
 - tests run
 - failures and fixes
 - training data generated
+- training candidates approved or rejected
+- knowledge sources indexed
 - design decisions
 - remaining limitations
 
 This creates a trail future AI coworkers can follow and improves Zeus-native model training over time.
-

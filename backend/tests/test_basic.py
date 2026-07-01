@@ -147,11 +147,41 @@ def test_tool_execution_captures_training_examples(tmp_path, monkeypatch):
 
     assert result["result"] == "8"
     tool_trace = data_dir / "tool_traces" / "tool_calls.jsonl"
-    instruction_examples = data_dir / "instruction_examples" / "generated_usage.jsonl"
+    candidates = data_dir / "instruction_examples" / "candidates.jsonl"
     assert tool_trace.exists()
-    assert instruction_examples.exists()
+    assert candidates.exists()
     assert '"tool": "calculate"' in tool_trace.read_text(encoding="utf-8")
-    assert "Use Zeus tool `calculate`" in instruction_examples.read_text(encoding="utf-8")
+    candidate_text = candidates.read_text(encoding="utf-8")
+    assert "Use Zeus tool `calculate`" in candidate_text
+    assert '"review_status": "pending"' in candidate_text
+
+
+def test_training_candidate_review_approves_example(tmp_path, monkeypatch):
+    data_dir = tmp_path / "training-data"
+    monkeypatch.setenv("ZEUSAI_DATA_DIR", str(data_dir))
+
+    execute_tool("calculate", {"expression": "10 - 3"})
+    with TestClient(app) as client:
+        candidates = client.get("/api/training/candidates").json()["candidates"]
+        response = client.post(
+            "/api/training/review",
+            json={
+                "candidate_id": candidates[-1]["id"],
+                "approved": True,
+                "reviewer": "pytest",
+                "label": "success",
+                "notes": "Good arithmetic tool example.",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.json()["approved"] is True
+    approved = data_dir / "instruction_examples" / "approved.jsonl"
+    reviews = data_dir / "instruction_examples" / "reviews.jsonl"
+    assert approved.exists()
+    assert reviews.exists()
+    assert "10 - 3" in approved.read_text(encoding="utf-8")
+    assert "Good arithmetic tool example" in reviews.read_text(encoding="utf-8")
 
 
 def test_training_correction_endpoint_captures_instruction_example(tmp_path, monkeypatch):
@@ -170,8 +200,10 @@ def test_training_correction_endpoint_captures_instruction_example(tmp_path, mon
 
     assert response.status_code == 200
     assert response.json()["captured"] is True
+    assert response.json()["candidate_id"]
     correction_log = data_dir / "tool_traces" / "user_corrections.jsonl"
-    instruction_examples = data_dir / "instruction_examples" / "generated_usage.jsonl"
+    candidates = data_dir / "instruction_examples" / "candidates.jsonl"
     assert correction_log.exists()
-    assert instruction_examples.exists()
-    assert "temporary infrastructure" in instruction_examples.read_text(encoding="utf-8")
+    assert candidates.exists()
+    assert "temporary infrastructure" in candidates.read_text(encoding="utf-8")
+    assert '"status": "user_corrected"' in candidates.read_text(encoding="utf-8")

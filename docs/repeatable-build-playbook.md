@@ -89,12 +89,14 @@ Captured data should be local and ignored by Git by default.
 
 Before serious model training:
 
-1. review generated JSONL
-2. remove private or bad examples
-3. label high-quality traces
-4. run small local training
-5. evaluate
+1. capture raw traces locally
+2. convert good moments into candidate examples
+3. review, label, approve, or reject candidates
+4. train only on seed plus approved examples by default
+5. evaluate locally
 6. scale to cloud GPU only when useful
+
+Keep factual material in `knowledge/`. Keep behavior-changing examples in `data/instruction_examples/`.
 
 ## Release Standard
 
@@ -106,4 +108,3 @@ A Zeus release should include:
 - known limitations
 - smoke-test result
 - next-step roadmap
-

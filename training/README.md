@@ -40,16 +40,25 @@ The scripts here do not load Qwen, Llama, Mistral, or any pretrained model. The 
 ```text
 data/
   raw/                  local source text you choose to add
-  instruction_examples/ seed instruction JSONL committed to the repo
+  instruction_examples/ seed, candidate, approved, and rejected examples
   conversations/        optional exported conversations
   tool_traces/          optional tool/action traces
   code_tasks/           optional coding-task examples
   project_docs/         optional local project docs
   decisions/            optional decision memories
   processed/            generated JSONL datasets
+
+knowledge/
+  manuals/              factual reference docs
+  research/             papers and research notes
+  books/                local long-form references
+  code_docs/            framework/API documentation
+  project_docs/         project specs and reference docs
+  processed/            extracted or chunked knowledge text
+  index/                generated local search/vector indexes
 ```
 
-Local generated data is ignored by Git. Commit only small seed examples that are safe to publish.
+Local generated data is ignored by Git. Commit only small seed examples that are safe to publish. Keep knowledge separate from training: knowledge tells Zeus what to retrieve; training changes Zeus behavior.
 
 ## Automatic Capture
 
@@ -59,7 +68,24 @@ Zeus captures local training material from real usage by default:
 - agent runs -> `data/tool_traces/agent_runs.jsonl`
 - chat completions -> `data/tool_traces/chat_completions.jsonl`
 - user corrections -> `data/tool_traces/user_corrections.jsonl`
-- generated instruction examples -> `data/instruction_examples/generated_usage.jsonl`
+- candidate instruction examples -> `data/instruction_examples/candidates.jsonl`
+
+Candidates are not treated as trusted training data. Review them first:
+
+```text
+GET /api/training/candidates
+POST /api/training/review
+```
+
+The desktop app also has a Training Review panel for this queue.
+
+Approved examples are appended to:
+
+```text
+data/instruction_examples/approved.jsonl
+```
+
+Rejected examples and review records are kept locally for evaluator training and debugging.
 
 The capture switch is:
 
@@ -90,7 +116,21 @@ with:
 }
 ```
 
-These files are raw learning material. Review and clean them before serious training.
+The default dataset command uses only committed seed examples plus reviewed approved examples:
+
+```powershell
+python training/data/build_dataset.py
+```
+
+Experiment-only options:
+
+```powershell
+python training/data/build_dataset.py --include-candidates
+python training/data/build_dataset.py --include-tool-traces
+python training/data/build_dataset.py --include-knowledge
+```
+
+Use the opt-in flags carefully. Pending candidates, failed traces, and knowledge docs are valuable, but they should not automatically become positive behavior examples.
 
 ## Honest Expectations
 
@@ -98,8 +138,9 @@ These files are raw learning material. Review and clean them before serious trai
 
 1. Zeus acts locally.
 2. Zeus logs actions and outcomes.
-3. The dataset builder turns good traces into training examples.
-4. Zeus-Tiny trains on those examples.
-5. Zeus takes over small native decisions.
+3. Candidate examples wait for review.
+4. The dataset builder turns approved traces into training examples.
+5. Zeus-Tiny trains on those examples.
+6. Zeus takes over small native decisions.
 
 Larger `Zeus-Small` and `Zeus-Core` models can come later with more data and rented GPU compute.

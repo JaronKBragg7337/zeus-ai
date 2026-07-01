@@ -102,3 +102,28 @@ Follow-up:
 - Add local review UI before training on captured data.
 - Add scoring labels for good/bad examples.
 
+## 2026-07-01 - Training Review Queue and Knowledge Lane
+
+Goal:
+Keep Zeus learning from real usage without treating every trace as a positive training example.
+
+What changed:
+
+- Captured behavior examples now land in `data/instruction_examples/candidates.jsonl`.
+- Added training review API endpoints for pending candidates and approval/rejection.
+- Added a desktop Training Review panel.
+- Approved examples move to `data/instruction_examples/approved.jsonl`.
+- Rejected examples and review records stay local for debugging and future evaluator training.
+- Dataset builder now trains on seed plus approved examples by default.
+- Added `knowledge/` as a separate lane for factual docs, manuals, research, books, code docs, and generated indexes.
+
+Verification:
+
+- Pending tool-use candidates are created during local tool execution.
+- Approved candidates are appended to the approved training set.
+- Dataset builder avoids raw traces and pending candidates unless explicitly opted in.
+
+Follow-up:
+
+- Add quality labels and evaluator training for failed/corrected examples.
+- Add local knowledge indexing that feeds RAG without changing model behavior.

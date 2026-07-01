@@ -128,9 +128,21 @@ Zeus also captures local training examples from real use:
 - user corrections
 - successful task completions
 
-Generated examples are written under `data/tool_traces/` and `data/instruction_examples/generated_usage.jsonl`, and are ignored by Git. Set `ZEUSAI_CAPTURE_TRAINING=0` to disable capture.
+Raw traces are written under `data/tool_traces/`. Training examples are written first to `data/instruction_examples/candidates.jsonl` with `review_status: pending`. Approved examples move to `data/instruction_examples/approved.jsonl`; rejected examples move to `data/instruction_examples/rejected.jsonl`. All generated local data is ignored by Git.
+
+The desktop app includes a Training Review panel for approving or rejecting pending examples.
+
+The dataset builder trains on `seed.jsonl` plus `approved.jsonl` by default:
+
+```powershell
+python training/data/build_dataset.py
+```
+
+Use opt-in flags such as `--include-candidates`, `--include-tool-traces`, or `--include-knowledge` only when intentionally experimenting. Set `ZEUSAI_CAPTURE_TRAINING=0` to disable capture.
 
 In the packaged desktop app, generated training data defaults to `%LOCALAPPDATA%\Zeus AI\data` so it survives app restarts.
+
+Knowledge is separate from training data. Put factual reference material under `knowledge/`; put behavior examples under `data/instruction_examples/`.
 
 To route backend chat through Zeus-Tiny:
 

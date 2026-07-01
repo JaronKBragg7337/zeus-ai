@@ -12,7 +12,7 @@ from fastapi.responses import StreamingResponse
 
 from models import (
     ChatRequest, ChatMessage, ModelPullRequest,
-    ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery, TrainingCorrection
+    ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery, TrainingCorrection, TrainingReview
 )
 from ollama_client import ollama
 from zeus_native_client import zeus_native
@@ -23,7 +23,13 @@ from config import UPLOAD_DIR, format_allowed_roots, is_full_computer_access_ena
 from audit_log import read_recent_actions
 from runtime_control import clear_stop, request_stop, status as runtime_status
 from prompts import build_zeus_system_prompt
-from training_capture import capture_chat_completion, capture_explicit_correction, capture_user_correction_if_present
+from training_capture import (
+    capture_chat_completion,
+    capture_explicit_correction,
+    capture_user_correction_if_present,
+    list_candidate_examples,
+    review_candidate_example,
+)
 
 app = FastAPI(
     title="Zeus AI Workbench",
@@ -234,6 +240,25 @@ async def execute_tool_endpoint(req: ToolCall):
 @app.post("/api/training/correction")
 async def training_correction(req: TrainingCorrection):
     return capture_explicit_correction(req.original, req.correction, context=req.context or "")
+
+
+@app.get("/api/training/candidates")
+async def training_candidates(limit: int = 100):
+    return {"candidates": list_candidate_examples(limit)}
+
+
+@app.post("/api/training/review")
+async def training_review(req: TrainingReview):
+    result = review_candidate_example(
+        req.candidate_id,
+        req.approved,
+        reviewer=req.reviewer,
+        notes=req.notes or "",
+        label=req.label,
+    )
+    if not result.get("reviewed"):
+        raise HTTPException(404, result.get("reason", "candidate not found"))
+    return result
 
 # ─── File Operations ───
 @app.post("/api/files/list")

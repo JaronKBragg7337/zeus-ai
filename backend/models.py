@@ -82,3 +82,11 @@ class TrainingCorrection(BaseModel):
     original: str
     correction: str
     context: Optional[str] = None
+
+
+class TrainingReview(BaseModel):
+    candidate_id: str
+    approved: bool
+    reviewer: str = "user"
+    notes: Optional[str] = None
+    label: Optional[str] = None
