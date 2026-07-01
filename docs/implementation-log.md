@@ -183,3 +183,39 @@ Follow-up:
 - Add automatic evaluator scoring beside each pending candidate in the review UI.
 - Retrain evaluator after enough real approved/rejected/corrected examples exist.
 - Later replace the linear evaluator with a Zeus-native neural evaluator if data volume justifies it.
+
+## 2026-07-01 - Fix agent tool calls + architecture review + product framing
+
+Agent/tool used: Claude Cowork (Fable 5)
+
+Goal:
+Fix reported "Zeus agent not working," review the knowledge/training lanes
+(Z-004), and write market + product framing (Z-006).
+
+What changed:
+
+- Fixed agent mode dropping native Ollama tool calls. Tool-capable models
+  (qwen) return message.tool_calls with empty content; the agent only read
+  content and ended tasks instantly with an empty message. Added chat_once
+  usage + `_extract_native_tool_call` with a text-parse fallback, plus an
+  explicit error when a response is genuinely empty.
+- Added `backend/tests/test_basic.py` cases for native tool-call extraction.
+- Added `docs/reviews/2026-07-01-architecture-review.md` (findings F-1..F-5;
+  F-1 = replace calculate eval() with an AST evaluator).
+- Added `docs/product/market-and-vision.md` (market map, L0-L5 layered vision,
+  recommended product order: folder-watch/index -> inspectable memory).
+- Updated TASK_LEDGER: Z-004 and Z-006 done; added Z-011..Z-013.
+
+Commands run:
+
+- .venv\Scripts\python.exe -m compileall backend  (OK)
+- .venv\Scripts\python.exe -m pytest backend\tests  (20 passed)
+- Live: POST /api/agent "compute 17*23" -> tool_call calculate -> 391
+
+Outcome:
+Agent works end to end on the LLM path. Fix committed (aee4559) and pushed.
+Desktop app rebuilt so the installed app carries the fix.
+
+Follow-up:
+Z-011 apply review findings (F-1 first), Z-012 folder-watch + auto-index,
+Z-013 inspectable memory panel.
