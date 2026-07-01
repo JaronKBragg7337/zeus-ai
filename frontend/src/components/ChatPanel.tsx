@@ -19,7 +19,7 @@ export default function ChatPanel({ selectedModel }: ChatPanelProps) {
   ])
   const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
-  const [useTools, setUseTools] = useState(false)
+  const [useTools, setUseTools] = useState(true)
   const [useRag, setUseRag] = useState(false)
   const [ragCollection, setRagCollection] = useState('default')
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -75,17 +75,43 @@ export default function ChatPanel({ selectedModel }: ChatPanelProps) {
       const decoder = new TextDecoder()
 
       if (reader) {
+        let buffer = ''
         while (true) {
           const { done, value } = await reader.read()
           if (done) break
 
-          const chunk = decoder.decode(value)
-          const lines = chunk.split('\n')
+          buffer += decoder.decode(value, { stream: true })
+          const events = buffer.split(/\r?\n\r?\n/)
+          buffer = events.pop() || ''
 
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6)
-              if (data === '[DONE]') break
+          for (const event of events) {
+            const data = event
+              .split(/\r?\n/)
+              .filter(line => line.startsWith('data: '))
+              .map(line => line.slice(6))
+              .join('\n')
+
+            if (!data) continue
+            if (data === '[DONE]') break
+
+            setMessages(prev => {
+              const last = prev[prev.length - 1]
+              if (last.role === 'assistant') {
+                return [...prev.slice(0, -1), { ...last, content: last.content + data }]
+              }
+              return prev
+            })
+          }
+        }
+
+        if (buffer.trim()) {
+          const data = buffer
+            .split(/\r?\n/)
+            .filter(line => line.startsWith('data: '))
+            .map(line => line.slice(6))
+            .join('\n')
+
+          if (data && data !== '[DONE]') {
               setMessages(prev => {
                 const last = prev[prev.length - 1]
                 if (last.role === 'assistant') {
@@ -93,7 +119,6 @@ export default function ChatPanel({ selectedModel }: ChatPanelProps) {
                 }
                 return prev
               })
-            }
           }
         }
       }

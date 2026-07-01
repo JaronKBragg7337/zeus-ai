@@ -31,14 +31,36 @@ class OllamaClient:
                             try:
                                 data = json.loads(line)
                                 if "message" in data and "content" in data["message"]:
-                                    yield data["message"]["content"]
+                                    content = data["message"]["content"]
+                                    if content:
+                                        yield content
                                 elif "done" in data and data["done"]:
                                     break
                             except json.JSONDecodeError:
                                 continue
                 else:
                     data = await resp.json()
-                    yield data["message"]["content"]
+                    content = data["message"].get("content", "")
+                    if content:
+                        yield content
+
+    async def chat_once(self, messages: List[Dict[str, Any]], model: str = "qwen3.5:4b",
+                        temperature: float = 0.7,
+                        tools: Optional[List[Dict]] = None) -> Dict[str, Any]:
+        """Run a single non-streaming chat request and return Ollama's raw message."""
+        payload = {
+            "model": model,
+            "messages": messages,
+            "stream": False,
+            "options": {"temperature": temperature}
+        }
+        if tools:
+            payload["tools"] = tools
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"{self.base_url}/api/chat", json=payload) as resp:
+                data = await resp.json()
+                return data.get("message", {})
 
     async def generate(self, prompt: str, model: str = "qwen3.5:4b",
                        system: Optional[str] = None) -> str:

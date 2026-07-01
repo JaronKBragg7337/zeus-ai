@@ -1,4 +1,5 @@
 """Zeus AI Workbench - FastAPI Backend"""
+import json
 import os
 import sys
 import shutil
@@ -17,9 +18,10 @@ from ollama_client import ollama
 from tools import get_tool_definitions, execute_tool, _resolve_allowed_path
 from agent import run_agent_task
 from rag_engine import rag_engine
-from config import UPLOAD_DIR, format_allowed_roots, is_full_computer_access_enabled, get_command_risk_policy
+from config import UPLOAD_DIR, format_allowed_roots, is_full_computer_access_enabled, get_command_risk_policy, is_shell_enabled
 from audit_log import read_recent_actions
 from runtime_control import clear_stop, request_stop, status as runtime_status
+from prompts import build_zeus_system_prompt
 
 app = FastAPI(
     title="Zeus AI Workbench",
@@ -45,6 +47,7 @@ async def health():
         "service": "zeus-ai",
         "allowed_roots": format_allowed_roots(),
         "full_computer_access": is_full_computer_access_enabled(),
+        "shell_enabled": is_shell_enabled(),
         "command_risk_policy": get_command_risk_policy(),
         "runtime": runtime_status(),
     }
@@ -94,6 +97,7 @@ async def delete_model(model_name: str):
 async def chat(req: ChatRequest):
     """Stream chat completions."""
     messages = [{"role": m.role, "content": m.content} for m in req.messages]
+    messages = _with_zeus_system_prompt(messages, tools_enabled=req.use_tools, rag_enabled=req.use_rag)
 
     # Add RAG context if requested
     if req.use_rag and req.rag_collection:
@@ -109,13 +113,85 @@ async def chat(req: ChatRequest):
     tools = get_tool_definitions() if req.use_tools else None
 
     async def stream_response():
+        if req.use_tools:
+            async for chunk in _stream_chat_with_tools(messages, req, tools or []):
+                yield chunk
+            return
+
         full_response = ""
         async for chunk in ollama.chat(messages, req.model, req.stream, req.temperature, tools):
             full_response += chunk
-            yield f"data: {chunk}\n\n"
+            yield _sse_data(chunk)
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(stream_response(), media_type="text/event-stream")
+
+
+def _with_zeus_system_prompt(messages: List[dict], *, tools_enabled: bool, rag_enabled: bool) -> List[dict]:
+    system_prompt = build_zeus_system_prompt(tools_enabled=tools_enabled, rag_enabled=rag_enabled)
+    without_old_system = [m for m in messages if m.get("role") != "system"]
+    return [{"role": "system", "content": system_prompt}, *without_old_system]
+
+
+def _sse_data(text: str) -> str:
+    if not text:
+        return ""
+    lines = str(text).replace("\r\n", "\n").replace("\r", "\n").split("\n")
+    return "".join(f"data: {line}\n" for line in lines) + "\n"
+
+
+def _format_tool_result_for_model(name: str, result: dict) -> str:
+    result_str = json.dumps(result, indent=2, ensure_ascii=False)[:6000]
+    return f"Tool '{name}' result:\n{result_str}\n\nUse this result to continue. If the task is complete, answer the user directly."
+
+
+async def _stream_chat_with_tools(messages: List[dict], req: ChatRequest, tools: List[dict]):
+    working_messages = list(messages)
+    used_tool = False
+
+    for _ in range(4):
+        message = await ollama.chat_once(
+            working_messages,
+            model=req.model,
+            temperature=req.temperature,
+            tools=tools,
+        )
+        content = message.get("content") or ""
+        tool_calls = message.get("tool_calls") or []
+
+        if not tool_calls:
+            if not content.strip() and used_tool:
+                content = "I used the local tool and completed the request."
+            yield _sse_data(content)
+            yield "data: [DONE]\n\n"
+            return
+
+        if content.strip():
+            working_messages.append({"role": "assistant", "content": content})
+
+        for call in tool_calls:
+            function = call.get("function", {})
+            tool_name = function.get("name")
+            arguments = function.get("arguments") or {}
+            if isinstance(arguments, str):
+                try:
+                    arguments = json.loads(arguments)
+                except json.JSONDecodeError:
+                    arguments = {}
+
+            if not tool_name:
+                continue
+
+            used_tool = True
+            yield _sse_data(f"Using local tool: {tool_name}")
+            result = execute_tool(tool_name, arguments)
+            working_messages.append({
+                "role": "user",
+                "content": _format_tool_result_for_model(tool_name, result),
+            })
+
+    yield _sse_data("I hit the tool-step limit before completing that request. Try the Agent panel for longer multi-step work.")
+    yield "data: [DONE]\n\n"
 
 # ─── Agent ───
 @app.post("/api/agent")

@@ -5,9 +5,10 @@ from typing import List, Dict, Any, AsyncIterator, Optional
 from ollama_client import ollama
 from tools import get_tool_definitions, execute_tool
 from runtime_control import stop_requested
+from prompts import build_zeus_system_prompt
 
 
-SYSTEM_PROMPT = """You are Zeus AI Agent, a helpful assistant that can use tools to accomplish tasks.
+AGENT_INSTRUCTIONS = """You are in Agent mode and can use tools to accomplish tasks.
 You have access to file operations, shell commands, search, and calculations.
 
 When given a task:
@@ -30,7 +31,7 @@ async def run_agent_task(task: str, model: str = "qwen3.5:4b",
     direct_tool = _direct_tool_for_simple_task(task, project_path)
 
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": build_zeus_system_prompt(tools_enabled=True) + "\n\n" + AGENT_INSTRUCTIONS},
         {"role": "user", "content": f"Task: {task}" + (f"\nProject path: {project_path}" if project_path else "")}
     ]
 

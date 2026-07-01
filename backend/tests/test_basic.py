@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from main import app
 from agent import run_agent_task
 from tools import execute_tool
+from prompts import build_zeus_system_prompt
 
 
 def test_health_endpoint_reports_allowed_roots():
@@ -20,6 +21,16 @@ def test_health_endpoint_reports_allowed_roots():
     data = response.json()
     assert data["status"] == "ok"
     assert data["allowed_roots"]
+    assert "shell_enabled" in data
+
+
+def test_zeus_prompt_names_local_capabilities():
+    prompt = build_zeus_system_prompt(tools_enabled=True, rag_enabled=True)
+
+    assert "You are Zeus AI" in prompt
+    assert "not a generic hosted chatbot" in prompt
+    assert "Do not say you cannot access this computer in blanket terms" in prompt
+    assert "local tools" in prompt
 
 
 def test_file_listing_defaults_to_project_root():

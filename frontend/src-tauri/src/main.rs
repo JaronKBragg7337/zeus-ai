@@ -44,6 +44,7 @@ fn main() {
                 .sidecar("zeus-backend")?
                 .env("ZEUSAI_DESKTOP", "1")
                 .env("ZEUSAI_FULL_COMPUTER_ACCESS", "1")
+                .env("ZEUSAI_ENABLE_SHELL", "1")
                 .env("ZEUSAI_COMMAND_RISK_POLICY", "log")
                 .env("ZEUSAI_BACKEND_HOST", "127.0.0.1")
                 .env("ZEUSAI_BACKEND_PORT", "8000");
