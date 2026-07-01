@@ -9,6 +9,7 @@ from typing import Dict, Any, List, Optional
 from audit_log import append_action
 from config import PROJECT_ROOT, get_allowed_roots, get_command_risk_policy, is_shell_enabled
 from runtime_control import stop_requested
+from training_capture import capture_tool_call
 
 
 MAX_TEXT_FILE_SIZE = 5 * 1024 * 1024
@@ -164,6 +165,7 @@ def execute_tool(name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
             "status": "blocked_by_kill",
             "result": result,
         })
+        capture_tool_call(name, parameters, result, "blocked_by_kill")
         return result
 
     try:
@@ -186,13 +188,15 @@ def execute_tool(name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as e:
         result = {"error": str(e)}
 
+    status = "error" if "error" in result else "ok"
     append_action({
         "type": "tool",
         "name": name,
         "parameters": parameters,
-        "status": "error" if "error" in result else "ok",
+        "status": status,
         "result": _summarize_result(result),
     })
+    capture_tool_call(name, parameters, result, status)
     return result
 
 

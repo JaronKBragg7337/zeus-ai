@@ -8,6 +8,7 @@ from tools import get_tool_definitions, execute_tool
 from runtime_control import stop_requested
 from prompts import build_zeus_system_prompt
 from config import is_native_model_enabled
+from training_capture import capture_agent_completion
 
 
 AGENT_INSTRUCTIONS = """You are in Agent mode and can use tools to accomplish tasks.
@@ -39,6 +40,7 @@ async def run_agent_task(task: str, model: str = "qwen3.5:4b",
 
     tools = get_tool_definitions()
     step = 0
+    tool_events: List[Dict[str, Any]] = []
 
     yield {"type": "status", "message": f"Starting task: {task}"}
 
@@ -49,8 +51,18 @@ async def run_agent_task(task: str, model: str = "qwen3.5:4b",
     if direct_tool:
         yield {"type": "tool_call", "name": direct_tool["name"], "parameters": direct_tool["parameters"]}
         result = execute_tool(direct_tool["name"], direct_tool["parameters"])
+        tool_events.append({"name": direct_tool["name"], "parameters": direct_tool["parameters"], "result": result})
         yield {"type": "tool_result", "name": direct_tool["name"], "result": result}
-        yield {"type": "complete", "message": _summarize_direct_tool_result(direct_tool["name"], result), "steps": 1}
+        message = _summarize_direct_tool_result(direct_tool["name"], result)
+        capture_agent_completion(
+            task,
+            message,
+            project_path=project_path,
+            steps=1,
+            status="error" if "error" in result else "success",
+            tool_events=tool_events,
+        )
+        yield {"type": "complete", "message": message, "steps": 1}
         return
 
     while step < max_steps:
@@ -80,6 +92,7 @@ async def run_agent_task(task: str, model: str = "qwen3.5:4b",
 
             # Execute the tool
             result = execute_tool(tool_name, tool_params)
+            tool_events.append({"name": tool_name, "parameters": tool_params, "result": result})
 
             yield {"type": "tool_result", "name": tool_name, "result": result}
 
@@ -90,10 +103,26 @@ async def run_agent_task(task: str, model: str = "qwen3.5:4b",
         else:
             # No tool call, task is done
             messages.append({"role": "assistant", "content": response_text})
+            capture_agent_completion(
+                task,
+                response_text,
+                project_path=project_path,
+                steps=step,
+                status="success",
+                tool_events=tool_events,
+            )
             yield {"type": "complete", "message": response_text, "steps": step}
             break
 
     if step >= max_steps:
+        capture_agent_completion(
+            task,
+            "Maximum steps reached. Task may be incomplete.",
+            project_path=project_path,
+            steps=step,
+            status="incomplete",
+            tool_events=tool_events,
+        )
         yield {"type": "complete", "message": "Maximum steps reached. Task may be incomplete.", "steps": step}
 
 

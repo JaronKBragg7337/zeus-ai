@@ -76,3 +76,9 @@ class RAGQuery(BaseModel):
     question: str
     collection: str = "default"
     top_k: int = 5
+
+
+class TrainingCorrection(BaseModel):
+    original: str
+    correction: str
+    context: Optional[str] = None

@@ -59,6 +59,20 @@ def get_native_model_dir() -> Path:
     return Path(os.getenv("ZEUSAI_NATIVE_MODEL_DIR", ZEUS_NATIVE_DIR)).expanduser()
 
 
+def get_data_dir() -> Path:
+    raw = os.getenv("ZEUSAI_DATA_DIR")
+    if raw:
+        return Path(raw).expanduser()
+    if os.getenv("ZEUSAI_DESKTOP") == "1" and os.name == "nt":
+        local_app_data = Path(os.getenv("LOCALAPPDATA", Path.home()))
+        return local_app_data / "Zeus AI" / "data"
+    return DATA_DIR
+
+
+def is_training_capture_enabled() -> bool:
+    return os.getenv("ZEUSAI_CAPTURE_TRAINING", "1").lower() not in {"0", "false", "no", "off"}
+
+
 def get_action_log_path() -> Path:
     return Path(os.getenv("ZEUSAI_ACTION_LOG", LOG_DIR / "actions.jsonl")).expanduser()
 

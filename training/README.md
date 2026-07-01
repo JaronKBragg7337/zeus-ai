@@ -51,6 +51,47 @@ data/
 
 Local generated data is ignored by Git. Commit only small seed examples that are safe to publish.
 
+## Automatic Capture
+
+Zeus captures local training material from real usage by default:
+
+- tool calls -> `data/tool_traces/tool_calls.jsonl`
+- agent runs -> `data/tool_traces/agent_runs.jsonl`
+- chat completions -> `data/tool_traces/chat_completions.jsonl`
+- user corrections -> `data/tool_traces/user_corrections.jsonl`
+- generated instruction examples -> `data/instruction_examples/generated_usage.jsonl`
+
+The capture switch is:
+
+```powershell
+$env:ZEUSAI_CAPTURE_TRAINING = "1"  # default
+$env:ZEUSAI_CAPTURE_TRAINING = "0"  # disable capture
+```
+
+To redirect generated data:
+
+```powershell
+$env:ZEUSAI_DATA_DIR = "D:\ZeusTrainingData"
+```
+
+Explicit corrections can be sent to:
+
+```text
+POST /api/training/correction
+```
+
+with:
+
+```json
+{
+  "original": "What Zeus said or did",
+  "correction": "What Zeus should learn instead",
+  "context": "Optional note"
+}
+```
+
+These files are raw learning material. Review and clean them before serious training.
+
 ## Honest Expectations
 
 `Zeus-Tiny` will be weak at first. That is normal. Its job is to create the training loop and data flywheel:

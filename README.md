@@ -120,6 +120,18 @@ python training/inference/zeus_tiny_infer.py --prompt "Classify this task"
 
 `Zeus-Tiny` starts as a small specialist model for routing, tool-call formatting, memory classification, planning, and result review. It is expected to be weak at fluent chat until the dataset and compute grow.
 
+Zeus also captures local training examples from real use:
+
+- tool calls
+- agent runs
+- chat completions
+- user corrections
+- successful task completions
+
+Generated examples are written under `data/tool_traces/` and `data/instruction_examples/generated_usage.jsonl`, and are ignored by Git. Set `ZEUSAI_CAPTURE_TRAINING=0` to disable capture.
+
+In the packaged desktop app, generated training data defaults to `%LOCALAPPDATA%\Zeus AI\data` so it survives app restarts.
+
 To route backend chat through Zeus-Tiny:
 
 ```powershell

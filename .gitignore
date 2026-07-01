@@ -31,6 +31,7 @@ data/raw/*
 data/processed/*
 data/conversations/*
 data/tool_traces/*
+data/instruction_examples/generated*.jsonl
 data/code_tasks/*
 data/project_docs/*
 data/decisions/*

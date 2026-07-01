@@ -12,7 +12,7 @@ from fastapi.responses import StreamingResponse
 
 from models import (
     ChatRequest, ChatMessage, ModelPullRequest,
-    ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery
+    ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery, TrainingCorrection
 )
 from ollama_client import ollama
 from zeus_native_client import zeus_native
@@ -23,6 +23,7 @@ from config import UPLOAD_DIR, format_allowed_roots, is_full_computer_access_ena
 from audit_log import read_recent_actions
 from runtime_control import clear_stop, request_stop, status as runtime_status
 from prompts import build_zeus_system_prompt
+from training_capture import capture_chat_completion, capture_explicit_correction, capture_user_correction_if_present
 
 app = FastAPI(
     title="Zeus AI Workbench",
@@ -98,8 +99,9 @@ async def delete_model(model_name: str):
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     """Stream chat completions."""
-    messages = [{"role": m.role, "content": m.content} for m in req.messages]
-    messages = _with_zeus_system_prompt(messages, tools_enabled=req.use_tools, rag_enabled=req.use_rag)
+    user_messages = [{"role": m.role, "content": m.content} for m in req.messages]
+    capture_user_correction_if_present(user_messages)
+    messages = _with_zeus_system_prompt(user_messages, tools_enabled=req.use_tools, rag_enabled=req.use_rag)
 
     # Add RAG context if requested
     if req.use_rag and req.rag_collection:
@@ -116,8 +118,11 @@ async def chat(req: ChatRequest):
 
     async def stream_response():
         if req.use_tools and not is_native_model_enabled():
+            captured_response = ""
             async for chunk in _stream_chat_with_tools(messages, req, tools or []):
+                captured_response += _extract_sse_text(chunk)
                 yield chunk
+            capture_chat_completion(user_messages, captured_response.replace("[DONE]", ""), model=req.model, tools_enabled=req.use_tools, rag_enabled=req.use_rag)
             return
 
         full_response = ""
@@ -125,6 +130,7 @@ async def chat(req: ChatRequest):
         async for chunk in client.chat(messages, req.model, req.stream, req.temperature, tools):
             full_response += chunk
             yield _sse_data(chunk)
+        capture_chat_completion(user_messages, full_response, model=req.model, tools_enabled=req.use_tools, rag_enabled=req.use_rag)
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(stream_response(), media_type="text/event-stream")
@@ -141,6 +147,11 @@ def _sse_data(text: str) -> str:
         return ""
     lines = str(text).replace("\r\n", "\n").replace("\r", "\n").split("\n")
     return "".join(f"data: {line}\n" for line in lines) + "\n"
+
+
+def _extract_sse_text(event: str) -> str:
+    lines = str(event).splitlines()
+    return "\n".join(line[6:] for line in lines if line.startswith("data: "))
 
 
 def _format_tool_result_for_model(name: str, result: dict) -> str:
@@ -218,6 +229,11 @@ async def execute_tool_endpoint(req: ToolCall):
     """Execute a single tool."""
     result = execute_tool(req.name, req.parameters)
     return result
+
+
+@app.post("/api/training/correction")
+async def training_correction(req: TrainingCorrection):
+    return capture_explicit_correction(req.original, req.correction, context=req.context or "")
 
 # ─── File Operations ───
 @app.post("/api/files/list")

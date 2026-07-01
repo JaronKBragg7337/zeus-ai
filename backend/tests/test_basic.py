@@ -3,6 +3,7 @@ from pathlib import Path
 import asyncio
 import json
 
+import pytest
 from fastapi.testclient import TestClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -12,6 +13,12 @@ from agent import run_agent_task
 from tools import execute_tool
 from prompts import build_zeus_system_prompt
 from zeus_native_client import ZeusNativeClient
+from config import get_data_dir
+
+
+@pytest.fixture(autouse=True)
+def isolate_training_capture(tmp_path, monkeypatch):
+    monkeypatch.setenv("ZEUSAI_DATA_DIR", str(tmp_path / "zeus-data"))
 
 
 def test_health_endpoint_reports_allowed_roots():
@@ -46,6 +53,14 @@ def test_native_client_reports_untrained_model(tmp_path, monkeypatch):
 
     assert "Zeus native mode is enabled" in result
     assert "Zeus-Tiny has not been trained yet" in result
+
+
+def test_desktop_data_dir_uses_local_app_data(tmp_path, monkeypatch):
+    monkeypatch.delenv("ZEUSAI_DATA_DIR", raising=False)
+    monkeypatch.setenv("ZEUSAI_DESKTOP", "1")
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+
+    assert get_data_dir() == tmp_path / "Zeus AI" / "data"
 
 
 def test_file_listing_defaults_to_project_root():
@@ -122,3 +137,41 @@ def test_tool_execution_writes_audit_log(tmp_path, monkeypatch):
     assert entries[-1]["type"] == "tool"
     assert entries[-1]["name"] == "calculate"
     assert entries[-1]["status"] == "ok"
+
+
+def test_tool_execution_captures_training_examples(tmp_path, monkeypatch):
+    data_dir = tmp_path / "training-data"
+    monkeypatch.setenv("ZEUSAI_DATA_DIR", str(data_dir))
+
+    result = execute_tool("calculate", {"expression": "3 + 5"})
+
+    assert result["result"] == "8"
+    tool_trace = data_dir / "tool_traces" / "tool_calls.jsonl"
+    instruction_examples = data_dir / "instruction_examples" / "generated_usage.jsonl"
+    assert tool_trace.exists()
+    assert instruction_examples.exists()
+    assert '"tool": "calculate"' in tool_trace.read_text(encoding="utf-8")
+    assert "Use Zeus tool `calculate`" in instruction_examples.read_text(encoding="utf-8")
+
+
+def test_training_correction_endpoint_captures_instruction_example(tmp_path, monkeypatch):
+    data_dir = tmp_path / "training-data"
+    monkeypatch.setenv("ZEUSAI_DATA_DIR", str(data_dir))
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/training/correction",
+            json={
+                "original": "Zeus should expose Qwen as the main identity.",
+                "correction": "Zeus should treat Qwen only as temporary infrastructure.",
+                "context": "identity correction",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.json()["captured"] is True
+    correction_log = data_dir / "tool_traces" / "user_corrections.jsonl"
+    instruction_examples = data_dir / "instruction_examples" / "generated_usage.jsonl"
+    assert correction_log.exists()
+    assert instruction_examples.exists()
+    assert "temporary infrastructure" in instruction_examples.read_text(encoding="utf-8")
