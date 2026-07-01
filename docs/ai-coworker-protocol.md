@@ -96,7 +96,15 @@ Do not touch:
 Next best step:
 ```
 
+The persistent handoff files live under:
+
+```text
+docs/handoff/
+docs/coworkers/
+```
+
+Start every new AI coworker session by reading `docs/handoff/CURRENT_STATE.md` and `docs/handoff/TASK_LEDGER.md`.
+
 ## Principle
 
 The repo should make the work repeatable by another person with similar tools. Do not leave the build process trapped in one chat transcript.
-
