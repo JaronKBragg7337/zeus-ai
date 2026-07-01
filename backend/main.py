@@ -5,18 +5,19 @@ import shutil
 from pathlib import Path
 from typing import List, Optional
 
-from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from models import (
     ChatRequest, ChatMessage, ModelPullRequest,
-    ProjectPath, FileOperation, AgentTask
+    ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery
 )
 from ollama_client import ollama
-from tools import get_tool_definitions, execute_tool
+from tools import get_tool_definitions, execute_tool, _resolve_allowed_path
 from agent import run_agent_task
 from rag_engine import rag_engine
+from config import UPLOAD_DIR, format_allowed_roots
 
 app = FastAPI(
     title="OmniLocal AI Workbench",
@@ -32,13 +33,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-UPLOAD_DIR = Path("./uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 # ─── Health ───
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "service": "omnilocal-ai"}
+    return {
+        "status": "ok",
+        "service": "omnilocal-ai",
+        "allowed_roots": format_allowed_roots(),
+    }
 
 # ─── Models ───
 @app.get("/api/models")
@@ -110,9 +114,9 @@ async def list_tools():
     return {"tools": get_tool_definitions()}
 
 @app.post("/api/tools/execute")
-async def execute_tool_endpoint(name: str, parameters: dict):
+async def execute_tool_endpoint(req: ToolCall):
     """Execute a single tool."""
-    result = execute_tool(name, parameters)
+    result = execute_tool(req.name, req.parameters)
     return result
 
 # ─── File Operations ───
@@ -139,7 +143,10 @@ async def write_file(req: FileOperation):
 
 @app.get("/api/files/download")
 async def download_file(path: str):
-    p = Path(path).expanduser().resolve()
+    try:
+        p = _resolve_allowed_path(path)
+    except ValueError as e:
+        raise HTTPException(403, str(e))
     if not p.exists() or not p.is_file():
         raise HTTPException(404, "File not found")
     from fastapi.responses import FileResponse
@@ -149,10 +156,11 @@ async def download_file(path: str):
 @app.post("/api/rag/upload")
 async def upload_document(
     file: UploadFile = File(...),
-    collection: str = "default"
+    collection: str = Form("default")
 ):
     """Upload a document for RAG."""
-    file_path = UPLOAD_DIR / file.filename
+    safe_name = Path(file.filename or "upload.txt").name
+    file_path = UPLOAD_DIR / safe_name
     content = await file.read()
     file_path.write_bytes(content)
 
@@ -188,8 +196,8 @@ async def upload_document(
     if not text.strip():
         return {"error": "No text content extracted from file"}
 
-    result = await rag_engine.ingest_document(text, file.filename, collection)
-    result["filename"] = file.filename
+    result = await rag_engine.ingest_document(text, safe_name, collection)
+    result["filename"] = safe_name
     return result
 
 @app.get("/api/rag/collections")
@@ -207,8 +215,8 @@ async def delete_collection(name: str):
     return {"success": success}
 
 @app.post("/api/rag/query")
-async def query_rag(question: str, collection: str = "default", top_k: int = 5):
-    return await rag_engine.query(question, collection, top_k)
+async def query_rag(req: RAGQuery):
+    return await rag_engine.query(req.question, req.collection, req.top_k)
 
 # ─── Startup ───
 @app.on_event("startup")

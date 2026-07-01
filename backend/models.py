@@ -70,3 +70,9 @@ class AgentTask(BaseModel):
     model: str = "qwen3.5:4b"
     project_path: Optional[str] = None
     max_steps: int = 10
+
+
+class RAGQuery(BaseModel):
+    question: str
+    collection: str = "default"
+    top_k: int = 5

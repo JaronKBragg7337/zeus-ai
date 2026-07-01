@@ -6,10 +6,39 @@ import json
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
+from config import PROJECT_ROOT, format_allowed_roots, get_allowed_roots, is_shell_enabled
+
+
+MAX_TEXT_FILE_SIZE = 5 * 1024 * 1024
+
+
+def _is_relative_to(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
+def _resolve_allowed_path(path: str, *, for_write: bool = False) -> Path:
+    """Resolve a path inside configured allowed roots."""
+    candidate = Path(path).expanduser()
+    if not candidate.is_absolute():
+        candidate = PROJECT_ROOT / candidate
+
+    resolved = candidate.resolve()
+    check_path = resolved.parent if for_write and not resolved.exists() else resolved
+    roots = get_allowed_roots()
+
+    if not any(_is_relative_to(check_path, root) for root in roots):
+        allowed = ", ".join(str(root) for root in roots)
+        raise ValueError(f"Path is outside allowed roots. Allowed roots: {allowed}")
+    return resolved
+
 
 def get_tool_definitions() -> List[Dict[str, Any]]:
     """Return tool definitions in Ollama format."""
-    return [
+    tools = [
         {
             "type": "function",
             "function": {
@@ -60,21 +89,6 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
         {
             "type": "function",
             "function": {
-                "name": "run_command",
-                "description": "Run a shell command. Use for git operations, running scripts, building, testing, etc. Be careful with destructive commands.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "command": {"type": "string", "description": "Shell command to execute"},
-                        "cwd": {"type": "string", "description": "Working directory", "default": "."}
-                    },
-                    "required": ["command"]
-                }
-            }
-        },
-        {
-            "type": "function",
-            "function": {
                 "name": "search_files",
                 "description": "Search for files matching a glob pattern, or search file contents with grep-like functionality.",
                 "parameters": {
@@ -118,6 +132,23 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
             }
         }
     ]
+    if is_shell_enabled():
+        tools.append({
+            "type": "function",
+            "function": {
+                "name": "run_command",
+                "description": "Run a shell command in an allowed project directory. Disabled unless OMNILOCAL_ENABLE_SHELL=1.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "command": {"type": "string", "description": "Shell command to execute"},
+                        "cwd": {"type": "string", "description": "Working directory", "default": "."}
+                    },
+                    "required": ["command"]
+                }
+            }
+        })
+    return tools
 
 
 def execute_tool(name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
@@ -144,12 +175,12 @@ def execute_tool(name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _read_file(path: str) -> Dict[str, Any]:
-    p = Path(path).expanduser().resolve()
+    p = _resolve_allowed_path(path)
     if not p.exists():
         return {"error": f"File not found: {path}"}
     if p.is_dir():
         return {"error": f"Path is a directory: {path}"}
-    if p.stat().st_size > 5 * 1024 * 1024:
+    if p.stat().st_size > MAX_TEXT_FILE_SIZE:
         return {"error": "File too large (>5MB)"}
     try:
         content = p.read_text(encoding="utf-8", errors="replace")
@@ -159,14 +190,14 @@ def _read_file(path: str) -> Dict[str, Any]:
 
 
 def _write_file(path: str, content: str) -> Dict[str, Any]:
-    p = Path(path).expanduser().resolve()
+    p = _resolve_allowed_path(path, for_write=True)
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(content, encoding="utf-8")
     return {"success": True, "path": str(p), "bytes_written": len(content)}
 
 
 def _list_files(path: str, recursive: bool = False) -> Dict[str, Any]:
-    p = Path(path).expanduser().resolve()
+    p = _resolve_allowed_path(path)
     if not p.exists():
         return {"error": f"Path not found: {path}"}
     if not p.is_dir():
@@ -189,14 +220,24 @@ def _list_files(path: str, recursive: bool = False) -> Dict[str, Any]:
 
 def _run_command(command: str, cwd: str = ".") -> Dict[str, Any]:
     """Run a shell command safely."""
-    dangerous = ["rm -rf /", "mkfs.", ":(){ :|:& };:", "> /dev/sda", "dd if=/dev/zero"]
+    if not is_shell_enabled():
+        return {"error": "Shell command execution is disabled. Set OMNILOCAL_ENABLE_SHELL=1 to enable it for allowed project roots."}
+
+    dangerous = [
+        "rm -rf /", "mkfs.", ":(){ :|:& };:", "> /dev/sda", "dd if=/dev/zero",
+        "format ", "shutdown", "restart-computer", "remove-item -recurse -force c:",
+        "del /s /q c:", "rmdir /s /q c:",
+    ]
     for d in dangerous:
         if d in command.lower():
             return {"error": f"Blocked dangerous command containing: {d}"}
 
     try:
+        safe_cwd = _resolve_allowed_path(cwd)
+        if not safe_cwd.is_dir():
+            return {"error": f"Working directory is not a directory: {cwd}"}
         result = subprocess.run(
-            command, shell=True, cwd=cwd, capture_output=True,
+            command, shell=True, cwd=safe_cwd, capture_output=True,
             text=True, timeout=60
         )
         return {
@@ -212,7 +253,7 @@ def _run_command(command: str, cwd: str = ".") -> Dict[str, Any]:
 
 
 def _search_files(pattern: str, path: str = ".", content_search: bool = False) -> Dict[str, Any]:
-    p = Path(path).expanduser().resolve()
+    p = _resolve_allowed_path(path)
     if not p.exists():
         return {"error": f"Path not found: {path}"}
 
@@ -236,7 +277,7 @@ def _search_files(pattern: str, path: str = ".", content_search: bool = False) -
 
 
 def _get_project_structure(path: str, max_depth: int = 4) -> Dict[str, Any]:
-    p = Path(path).expanduser().resolve()
+    p = _resolve_allowed_path(path)
     if not p.exists():
         return {"error": f"Path not found: {path}"}
 
