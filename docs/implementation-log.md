@@ -157,3 +157,29 @@ Follow-up:
 - Add semantic embeddings as an optional local-only upgrade for Zeus Knowledge.
 - Add a trained Zeus evaluator model once enough reviewed data exists.
 - Add a first-run desktop setup screen for knowledge folders and training-data policy.
+
+## 2026-07-01 - Zeus Evaluator v1
+
+Goal:
+Train Zeus to score whether a candidate example should be learned from.
+
+What changed:
+
+- Added `backend/evaluator_model.py` runtime.
+- Added `POST /api/training/evaluate`.
+- Added `training/evaluator/train_evaluator_v1.py`.
+- Added `training/evaluator/score_candidate.py`.
+- Added ignored local model path `models/zeus-evaluator-v1/evaluator.json`.
+- Added a Score button/result to the Training Review panel.
+
+Verification:
+
+- Backend test covers local evaluator scoring through the API.
+- Evaluator dataset builds locally.
+- Evaluator v1 trains locally from approved/rejected/corrected examples.
+
+Follow-up:
+
+- Add automatic evaluator scoring beside each pending candidate in the review UI.
+- Retrain evaluator after enough real approved/rejected/corrected examples exist.
+- Later replace the linear evaluator with a Zeus-native neural evaluator if data volume justifies it.

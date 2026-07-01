@@ -14,6 +14,7 @@ Zeus AI Workbench is a local Windows-first desktop AI workbench with:
 - audit logs and kill switch
 - automatic training-example capture
 - training review queue
+- Zeus Evaluator v1 candidate scoring
 - first Zeus-native tiny model path
 
 GitHub repo:
@@ -68,6 +69,12 @@ Generated traces and app data default to:
 C:\Users\lilli\AppData\Local\Zeus AI\data
 ```
 
+Packaged desktop Evaluator v1 model default:
+
+```text
+C:\Users\lilli\AppData\Local\Zeus AI\models\zeus-evaluator-v1\evaluator.json
+```
+
 ## Standing Direction
 
 The user wants Zeus to become a local AI operating system, not just a renamed chat model.
@@ -108,8 +115,9 @@ Packaged smoke pattern:
 2. Check `/api/health`.
 3. Execute harmless `calculate` tool.
 4. Check `/api/training/candidates`.
-5. Approve one candidate through `/api/training/review`.
-6. Stop `zeus-ai-desktop` and `zeus-backend`.
+5. Score one candidate through `/api/training/evaluate`.
+6. Approve one candidate through `/api/training/review`.
+7. Stop `zeus-ai-desktop` and `zeus-backend`.
 
 ## Do Not Commit
 

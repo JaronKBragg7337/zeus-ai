@@ -21,6 +21,8 @@ Status keys:
 | Z-006 | todo | Fable 5 | Product framing and founder-system narrative | Fable maintains global state, handoff clarity, demos, promotion. |
 | Z-007 | todo | Claude Code Sonnet | Independent code review after local indexing lands | Focus on bugs, tests, packaging. |
 | Z-008 | todo | Codex 5.5 | Package and smoke-test final desktop build | Needed after Knowledge panel and backend endpoints are committed. |
+| Z-009 | done | Codex 5.5 | Add Evaluator v1 local scorer | Trains from approved/rejected/corrected examples and scores candidates through API/UI. |
+| Z-010 | todo | Codex 5.5 | Surface evaluator score automatically in review queue | Current UI scores on button press. |
 
 ## Current User Priorities
 

@@ -13,7 +13,7 @@ from agent import run_agent_task
 from tools import execute_tool
 from prompts import build_zeus_system_prompt
 from zeus_native_client import ZeusNativeClient
-from config import get_data_dir, get_knowledge_dir
+from config import get_data_dir, get_evaluator_model_dir, get_knowledge_dir
 
 
 @pytest.fixture(autouse=True)
@@ -69,6 +69,14 @@ def test_desktop_knowledge_dir_uses_local_app_data(tmp_path, monkeypatch):
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
 
     assert get_knowledge_dir() == tmp_path / "Zeus AI" / "knowledge"
+
+
+def test_desktop_evaluator_model_dir_uses_local_app_data(tmp_path, monkeypatch):
+    monkeypatch.delenv("ZEUSAI_EVALUATOR_MODEL_DIR", raising=False)
+    monkeypatch.setenv("ZEUSAI_DESKTOP", "1")
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+
+    assert get_evaluator_model_dir() == tmp_path / "Zeus AI" / "models" / "zeus-evaluator-v1"
 
 
 def test_file_listing_defaults_to_project_root():
@@ -214,6 +222,33 @@ def test_training_candidate_review_approves_example(tmp_path, monkeypatch):
     assert reviews.exists()
     assert "10 - 3" in approved.read_text(encoding="utf-8")
     assert "Good arithmetic tool example" in reviews.read_text(encoding="utf-8")
+
+
+def test_training_evaluate_scores_candidate_with_local_evaluator(tmp_path, monkeypatch):
+    data_dir = tmp_path / "training-data"
+    model_dir = tmp_path / "evaluator-model"
+    monkeypatch.setenv("ZEUSAI_DATA_DIR", str(data_dir))
+    monkeypatch.setenv("ZEUSAI_EVALUATOR_MODEL_DIR", str(model_dir))
+    model_dir.mkdir(parents=True)
+    (model_dir / "evaluator.json").write_text(
+        json.dumps({
+            "type": "zeus-evaluator-linear-v1",
+            "feature_size": 8,
+            "weights": [0.0] * 8,
+            "bias": 2.2,
+        }),
+        encoding="utf-8",
+    )
+
+    execute_tool("calculate", {"expression": "6 * 7"})
+    with TestClient(app) as client:
+        candidates = client.get("/api/training/candidates").json()["candidates"]
+        response = client.post("/api/training/evaluate", json={"candidate_id": candidates[-1]["id"]})
+
+    assert response.status_code == 200
+    assert response.json()["available"] is True
+    assert response.json()["decision"] == "approve"
+    assert response.json()["score"] > 0.67
 
 
 def test_training_correction_endpoint_captures_instruction_example(tmp_path, monkeypatch):

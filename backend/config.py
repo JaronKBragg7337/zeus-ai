@@ -14,6 +14,7 @@ LOG_DIR = BACKEND_DIR / "logs"
 DATA_DIR = PROJECT_ROOT / "data"
 TRAINING_DIR = PROJECT_ROOT / "training"
 ZEUS_NATIVE_DIR = PROJECT_ROOT / "models" / "zeus-tiny"
+ZEUS_EVALUATOR_DIR = PROJECT_ROOT / "models" / "zeus-evaluator-v1"
 KNOWLEDGE_DIR = PROJECT_ROOT / "knowledge"
 
 
@@ -58,6 +59,16 @@ def is_native_model_enabled() -> bool:
 
 def get_native_model_dir() -> Path:
     return Path(os.getenv("ZEUSAI_NATIVE_MODEL_DIR", ZEUS_NATIVE_DIR)).expanduser()
+
+
+def get_evaluator_model_dir() -> Path:
+    raw = os.getenv("ZEUSAI_EVALUATOR_MODEL_DIR")
+    if raw:
+        return Path(raw).expanduser()
+    if os.getenv("ZEUSAI_DESKTOP") == "1" and os.name == "nt":
+        local_app_data = Path(os.getenv("LOCALAPPDATA", Path.home()))
+        return local_app_data / "Zeus AI" / "models" / "zeus-evaluator-v1"
+    return ZEUS_EVALUATOR_DIR
 
 
 def get_data_dir() -> Path:

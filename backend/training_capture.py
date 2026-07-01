@@ -198,6 +198,16 @@ def list_candidate_examples(limit: int = 100) -> List[Dict[str, Any]]:
     return pending[-bounded_limit:]
 
 
+def get_candidate_example(candidate_id: str) -> Optional[Dict[str, Any]]:
+    if not is_training_capture_enabled():
+        return None
+
+    for candidate in _read_jsonl(_path("instruction_examples", "candidates.jsonl")):
+        if candidate.get("id") == candidate_id:
+            return candidate
+    return None
+
+
 def review_candidate_example(candidate_id: str, approved: bool, *, reviewer: str = "user",
                              notes: str = "", label: Optional[str] = None) -> Dict[str, Any]:
     if not is_training_capture_enabled():

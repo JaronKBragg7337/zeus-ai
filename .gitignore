@@ -43,6 +43,8 @@ data/decisions/*
 !data/**/.gitkeep
 models/zeus-tiny/*
 !models/zeus-tiny/.gitkeep
+models/zeus-evaluator-v1/*
+!models/zeus-evaluator-v1/.gitkeep
 knowledge/manuals/*
 knowledge/research/*
 knowledge/books/*

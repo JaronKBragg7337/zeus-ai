@@ -159,9 +159,12 @@ Evaluator/scoring data can be built separately:
 
 ```powershell
 python training/data/build_evaluator_dataset.py
+python training/evaluator/train_evaluator_v1.py
 ```
 
 This writes `data/processed/zeus_evaluator.jsonl` from seed evaluator examples plus local approved/rejected/corrected examples.
+
+The trained Evaluator v1 model is saved to `models/zeus-evaluator-v1/evaluator.json` during repo development and can score pending candidates through `POST /api/training/evaluate` or the Training Review panel. In the packaged desktop app, Evaluator v1 defaults to `%LOCALAPPDATA%\Zeus AI\models\zeus-evaluator-v1\evaluator.json`.
 
 To route backend chat through Zeus-Tiny:
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Check, ClipboardCheck, RefreshCw, X } from 'lucide-react'
+import { Check, ClipboardCheck, RefreshCw, Sparkles, X } from 'lucide-react'
 
 const API_BASE = 'http://localhost:8000'
 
@@ -14,6 +14,12 @@ type Candidate = {
 }
 
 type ReviewLabel = 'success' | 'failed' | 'user_corrected' | 'bug' | 'unsafe' | 'unclear' | 'other'
+type EvaluatorResult = {
+  available: boolean
+  score: number | null
+  decision: string
+  reason: string
+}
 
 const REVIEW_LABELS: ReviewLabel[] = ['success', 'failed', 'user_corrected', 'bug', 'unsafe', 'unclear', 'other']
 
@@ -24,6 +30,7 @@ export default function TrainingReviewPanel() {
   const [label, setLabel] = useState<ReviewLabel>('success')
   const [notes, setNotes] = useState('')
   const [message, setMessage] = useState('')
+  const [evaluator, setEvaluator] = useState<EvaluatorResult | null>(null)
 
   const selected = useMemo(
     () => candidates.find((candidate) => candidate.id === selectedId) || candidates[0],
@@ -55,6 +62,26 @@ export default function TrainingReviewPanel() {
     setLabel((candidate.status as ReviewLabel) || 'success')
     setNotes('')
     setMessage('')
+    setEvaluator(null)
+  }
+
+  const evaluateCandidate = async () => {
+    if (!selected) return
+    setMessage('')
+    try {
+      const res = await fetch(`${API_BASE}/api/training/evaluate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ candidate_id: selected.id }),
+      })
+      const data = await res.json()
+      setEvaluator(data)
+      if (data.decision && (REVIEW_LABELS as readonly string[]).includes(data.decision)) {
+        setLabel(data.decision as ReviewLabel)
+      }
+    } catch {
+      setMessage('Evaluator v1 could not score this candidate.')
+    }
   }
 
   const reviewCandidate = async (approved: boolean) => {
@@ -184,8 +211,27 @@ export default function TrainingReviewPanel() {
                   <X size={16} />
                   Reject
                 </button>
+                <button
+                  onClick={evaluateCandidate}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-700 text-dark-200 text-sm font-medium hover:bg-dark-600 transition-all"
+                >
+                  <Sparkles size={16} />
+                  Score
+                </button>
                 {message && <span className="text-xs text-dark-500">{message}</span>}
               </div>
+
+              {evaluator && (
+                <div className="bg-dark-900/50 border border-dark-800 rounded-lg p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <h4 className="text-xs font-semibold text-dark-400">Evaluator v1</h4>
+                    <span className="text-xs text-primary-400">
+                      {evaluator.score === null ? 'untrained' : evaluator.score.toFixed(3)} · {evaluator.decision}
+                    </span>
+                  </div>
+                  <p className="text-sm text-dark-300 mt-2">{evaluator.reason}</p>
+                </div>
+              )}
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-sm text-dark-500">

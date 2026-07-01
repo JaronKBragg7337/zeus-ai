@@ -92,6 +92,15 @@ class TrainingReview(BaseModel):
     label: Optional[str] = None
 
 
+class TrainingEvaluateRequest(BaseModel):
+    candidate_id: Optional[str] = None
+    instruction: Optional[str] = None
+    ideal_output: Optional[str] = None
+    source: Optional[str] = None
+    status: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
 class KnowledgeSearchRequest(BaseModel):
     query: str
     top_k: int = 5

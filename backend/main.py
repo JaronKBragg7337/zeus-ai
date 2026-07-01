@@ -13,7 +13,7 @@ from fastapi.responses import StreamingResponse
 from models import (
     ChatRequest, ChatMessage, ModelPullRequest,
     ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery, TrainingCorrection, TrainingReview,
-    KnowledgeSearchRequest
+    TrainingEvaluateRequest, KnowledgeSearchRequest
 )
 from ollama_client import ollama
 from zeus_native_client import zeus_native
@@ -25,10 +25,12 @@ from config import UPLOAD_DIR, format_allowed_roots, is_full_computer_access_ena
 from audit_log import read_recent_actions
 from runtime_control import clear_stop, request_stop, status as runtime_status
 from prompts import build_zeus_system_prompt
+from evaluator_model import score_candidate_example
 from training_capture import (
     capture_chat_completion,
     capture_explicit_correction,
     capture_user_correction_if_present,
+    get_candidate_example,
     list_candidate_examples,
     review_candidate_example,
 )
@@ -261,6 +263,24 @@ async def training_review(req: TrainingReview):
     if not result.get("reviewed"):
         raise HTTPException(404, result.get("reason", "candidate not found"))
     return result
+
+
+@app.post("/api/training/evaluate")
+async def training_evaluate(req: TrainingEvaluateRequest):
+    candidate = None
+    if req.candidate_id:
+        candidate = get_candidate_example(req.candidate_id)
+        if not candidate:
+            raise HTTPException(404, "candidate not found")
+    else:
+        candidate = {
+            "instruction": req.instruction or "",
+            "ideal_output": req.ideal_output or "",
+            "source": req.source or "api",
+            "status": req.status or "unknown",
+            "metadata": req.metadata or {},
+        }
+    return score_candidate_example(candidate)
 
 # ─── File Operations ───
 @app.post("/api/files/list")

@@ -156,6 +156,52 @@ This uses:
 
 Use this data for future Zeus evaluators that decide whether an example should be approved, rejected, or revised. Do not mix this with the main behavior-training corpus unless that is an explicit experiment.
 
+## Evaluator v1
+
+Train the first local evaluator:
+
+```powershell
+python training/data/build_evaluator_dataset.py
+python training/evaluator/train_evaluator_v1.py
+```
+
+This writes:
+
+```text
+models/zeus-evaluator-v1/evaluator.json
+```
+
+Score a candidate from the command line:
+
+```powershell
+python training/evaluator/score_candidate.py --instruction "Use Zeus tool calculate" --output "Tool completed successfully"
+```
+
+The backend also exposes:
+
+```text
+POST /api/training/evaluate
+```
+
+with either:
+
+```json
+{"candidate_id":"local-candidate-id"}
+```
+
+or:
+
+```json
+{
+  "instruction": "Candidate instruction",
+  "ideal_output": "Candidate output",
+  "source": "manual-test",
+  "status": "unknown"
+}
+```
+
+Evaluator v1 returns `approve`, `revise`, or `reject` plus a score. It is a small local hashed linear model, not a cloud model and not a pretrained LLM.
+
 ## Honest Expectations
 
 `Zeus-Tiny` will be weak at first. That is normal. Its job is to create the training loop and data flywheel:
