@@ -1,4 +1,4 @@
-"""Local runtime configuration for OmniLocal AI Workbench."""
+"""Local runtime configuration for Zeus AI Workbench."""
 import os
 from pathlib import Path
 from typing import Iterable, List
@@ -13,7 +13,7 @@ CHROMA_DB_DIR = BACKEND_DIR / "chroma_db"
 
 def get_allowed_roots() -> List[Path]:
     """Return directories the app is allowed to browse or modify."""
-    raw = os.getenv("OMNILOCAL_ALLOWED_ROOTS")
+    raw = os.getenv("ZEUSAI_ALLOWED_ROOTS") or os.getenv("OMNILOCAL_ALLOWED_ROOTS")
     roots: Iterable[str] = raw.split(os.pathsep) if raw else [str(PROJECT_ROOT)]
     resolved = []
     for item in roots:
@@ -28,4 +28,5 @@ def format_allowed_roots() -> List[str]:
 
 
 def is_shell_enabled() -> bool:
-    return os.getenv("OMNILOCAL_ENABLE_SHELL", "").lower() in {"1", "true", "yes", "on"}
+    raw = os.getenv("ZEUSAI_ENABLE_SHELL") or os.getenv("OMNILOCAL_ENABLE_SHELL", "")
+    return raw.lower() in {"1", "true", "yes", "on"}

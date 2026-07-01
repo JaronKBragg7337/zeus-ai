@@ -41,7 +41,7 @@ def test_file_listing_blocks_paths_outside_allowed_roots():
 
 def test_local_rag_ingest_and_query():
     with TestClient(app) as client:
-        files = {"file": ("smoke.txt", b"OmniLocal smoke fact: the verification code is local-only.", "text/plain")}
+        files = {"file": ("smoke.txt", b"Zeus AI smoke fact: the verification code is local-only.", "text/plain")}
         upload = client.post("/api/rag/upload", data={"collection": "pytest_smoke"}, files=files)
         query = client.post(
             "/api/rag/query",

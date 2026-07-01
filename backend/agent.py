@@ -6,7 +6,7 @@ from ollama_client import ollama
 from tools import get_tool_definitions, execute_tool
 
 
-SYSTEM_PROMPT = """You are OmniLocal AI Agent, a helpful assistant that can use tools to accomplish tasks.
+SYSTEM_PROMPT = """You are Zeus AI Agent, a helpful assistant that can use tools to accomplish tasks.
 You have access to file operations, shell commands, search, and calculations.
 
 When given a task:

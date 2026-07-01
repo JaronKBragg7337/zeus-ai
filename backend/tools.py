@@ -137,7 +137,7 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "run_command",
-                "description": "Run a shell command in an allowed project directory. Disabled unless OMNILOCAL_ENABLE_SHELL=1.",
+                "description": "Run a shell command in an allowed project directory. Disabled unless ZEUSAI_ENABLE_SHELL=1.",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -221,7 +221,7 @@ def _list_files(path: str, recursive: bool = False) -> Dict[str, Any]:
 def _run_command(command: str, cwd: str = ".") -> Dict[str, Any]:
     """Run a shell command safely."""
     if not is_shell_enabled():
-        return {"error": "Shell command execution is disabled. Set OMNILOCAL_ENABLE_SHELL=1 to enable it for allowed project roots."}
+        return {"error": "Shell command execution is disabled. Set ZEUSAI_ENABLE_SHELL=1 to enable it for allowed project roots."}
 
     dangerous = [
         "rm -rf /", "mkfs.", ":(){ :|:& };:", "> /dev/sda", "dd if=/dev/zero",

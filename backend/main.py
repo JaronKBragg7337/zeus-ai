@@ -1,4 +1,4 @@
-"""OmniLocal AI Workbench - FastAPI Backend"""
+"""Zeus AI Workbench - FastAPI Backend"""
 import os
 import sys
 import shutil
@@ -20,7 +20,7 @@ from rag_engine import rag_engine
 from config import UPLOAD_DIR, format_allowed_roots
 
 app = FastAPI(
-    title="OmniLocal AI Workbench",
+    title="Zeus AI Workbench",
     description="100% Local AI Agent with Tool Use and RAG",
     version="1.0.0"
 )
@@ -40,7 +40,7 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 async def health():
     return {
         "status": "ok",
-        "service": "omnilocal-ai",
+        "service": "zeus-ai",
         "allowed_roots": format_allowed_roots(),
     }
 
@@ -222,7 +222,7 @@ async def query_rag(req: RAGQuery):
 @app.on_event("startup")
 async def startup():
     await rag_engine.initialize()
-    print("OmniLocal AI Workbench started!")
+    print("Zeus AI Workbench started!")
     print("Open http://localhost:8000 in your browser after starting the frontend.")
 
 if __name__ == "__main__":

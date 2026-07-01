@@ -2,7 +2,7 @@
 chcp 65001 >nul
 echo ╔══════════════════════════════════════════════════╗
 echo ║                                                  ║
-echo ║     🤖 OmniLocal AI Workbench v1.0.0            ║
+echo ║     Zeus AI Workbench v1.0.0                    ║
 echo ║     100%% Local • Private • Open Source           ║
 echo ║                                                  ║
 echo ╚══════════════════════════════════════════════════╝
@@ -45,7 +45,7 @@ if not exist "backend\.deps_installed" (
 REM Start backend
 echo  🚀 Starting backend server...
 cd backend
-start "OmniLocal Backend" cmd /k "python main.py"
+start "Zeus AI Backend" cmd /k "python main.py"
 cd ..
 
 timeout /t 3 /nobreak >nul
@@ -70,14 +70,14 @@ if not exist "frontend\node_modules" (
 REM Start frontend
 echo  🌐 Starting frontend...
 cd frontend
-start "OmniLocal Frontend" cmd /k "npm run dev"
+start "Zeus AI Frontend" cmd /k "npm run dev"
 cd ..
 
 timeout /t 2 /nobreak >nul
 
 echo.
 echo ════════════════════════════════════════════════════
-echo  🎉 OmniLocal AI Workbench is starting!
+echo  Zeus AI Workbench is starting!
 echo.
 echo  📱 Open http://localhost:3000 in your browser
 echo  🔧 API running at http://localhost:8000

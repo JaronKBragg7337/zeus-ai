@@ -15,7 +15,7 @@ const API_BASE = 'http://localhost:8000'
 
 export default function ChatPanel({ selectedModel }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'system', content: 'Welcome to OmniLocal AI Workbench. I run entirely on your local machine. No data leaves your computer.', timestamp: new Date() }
+    { role: 'system', content: 'Welcome to Zeus AI Workbench. I run entirely on your local machine. No data leaves your computer.', timestamp: new Date() }
   ])
   const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
@@ -258,7 +258,7 @@ export default function ChatPanel({ selectedModel }: ChatPanelProps) {
           )}
         </div>
         <p className="text-center text-xs text-dark-600 mt-2">
-          OmniLocal AI runs 100% locally. Your data never leaves this machine.
+          Zeus AI runs 100% locally. Your data never leaves this machine.
         </p>
       </div>
     </div>

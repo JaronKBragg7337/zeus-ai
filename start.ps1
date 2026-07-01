@@ -1,8 +1,8 @@
-# OmniLocal AI Workbench Startup Script
+# Zeus AI Workbench Startup Script
 Write-Host ""
 Write-Host "╔══════════════════════════════════════════════════╗" -ForegroundColor Cyan
 Write-Host "║                                                  ║" -ForegroundColor Cyan
-Write-Host "║     🤖 OmniLocal AI Workbench v1.0.0            ║" -ForegroundColor Cyan
+Write-Host "║     Zeus AI Workbench v1.0.0                    ║" -ForegroundColor Cyan
 Write-Host "║     100% Local • Private • Open Source           ║" -ForegroundColor Cyan
 Write-Host "║                                                  ║" -ForegroundColor Cyan
 Write-Host "╚══════════════════════════════════════════════════╝" -ForegroundColor Cyan
@@ -70,7 +70,7 @@ Start-Sleep -Seconds 3
 
 Write-Host ""
 Write-Host "════════════════════════════════════════════════════" -ForegroundColor Cyan
-Write-Host "  🎉 OmniLocal AI Workbench is starting!" -ForegroundColor Green
+Write-Host "  Zeus AI Workbench is starting!" -ForegroundColor Green
 Write-Host ""
 Write-Host "  📱 Open http://localhost:3000 in your browser" -ForegroundColor White
 Write-Host "  🔧 API running at http://localhost:8000" -ForegroundColor White

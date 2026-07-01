@@ -1,6 +1,6 @@
-# OmniLocal AI Workbench
+# Zeus AI Workbench
 
-OmniLocal AI Workbench is a local FastAPI + React/Vite app for working with Ollama models, browsing an allowed project folder, running a constrained local agent, and indexing small documents for local RAG.
+Zeus AI Workbench is a local FastAPI + React/Vite app for working with Ollama models, browsing an allowed project folder, running a constrained local agent, and indexing small documents for local RAG.
 
 The app does not require cloud APIs, paid services, secrets, API keys, or telemetry.
 
@@ -81,14 +81,14 @@ API:
 By default, file access is limited to the repo root. To allow additional project folders:
 
 ```powershell
-$env:OMNILOCAL_ALLOWED_ROOTS = "G:\My Drive\Codex Coworker\omnilocal-ai;C:\path\to\another\project"
+$env:ZEUSAI_ALLOWED_ROOTS = "G:\My Drive\Codex Coworker\omnilocal-ai;C:\path\to\another\project"
 .\.venv\Scripts\python.exe backend\main.py
 ```
 
 Shell command execution is disabled by default. To enable it for allowed roots only:
 
 ```powershell
-$env:OMNILOCAL_ENABLE_SHELL = "1"
+$env:ZEUSAI_ENABLE_SHELL = "1"
 ```
 
 ## Frontend
@@ -131,17 +131,17 @@ npm run typecheck
 
 - No cloud LLM APIs are used.
 - The app talks to local Ollama only.
-- File browsing and file writes are restricted to `OMNILOCAL_ALLOWED_ROOTS`.
+- File browsing and file writes are restricted to `ZEUSAI_ALLOWED_ROOTS`.
 - The default allowed root is this repo.
 - Uploaded RAG files are stored under `backend/uploads/`, which is ignored by Git.
 - Local RAG stores are ignored by Git.
-- Shell execution is disabled unless `OMNILOCAL_ENABLE_SHELL=1`.
+- Shell execution is disabled unless `ZEUSAI_ENABLE_SHELL=1`.
 - This is a local developer tool and does not include authentication. Do not expose it to a public network.
 
 ## Troubleshooting
 
 - `Ollama connection failed`: start Ollama and verify `ollama list`.
-- `Path is outside allowed roots`: set `OMNILOCAL_ALLOWED_ROOTS` before starting the backend.
+- `Path is outside allowed roots`: set `ZEUSAI_ALLOWED_ROOTS` before starting the backend.
 - `pip install` stalls on Windows: use `uv pip install --python .\.venv\Scripts\python.exe -r backend\requirements.txt`.
 - `npm install` fails under Google Drive: move or clone the repo to a normal local NTFS folder such as `C:\Users\<you>\source\omnilocal-ai`, then run frontend installs there. This repo was verified from a local `C:` copy because package extraction failed repeatedly in the Google Drive workspace.
 - RAG quality is basic by default: the core install uses a lightweight local lexical index. For heavier semantic RAG, install `backend/requirements-optional-rag.txt`.

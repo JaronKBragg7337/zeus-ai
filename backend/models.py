@@ -1,4 +1,4 @@
-"""Pydantic models for the OmniLocal AI Workbench API."""
+"""Pydantic models for the Zeus AI Workbench API."""
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from enum import Enum
