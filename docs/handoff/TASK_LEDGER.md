@@ -36,6 +36,8 @@ Status keys:
 | Z-021 | todo | Zeus + Heartbeat implementer | Add PAM memory sync and honest world visualization | Read `docs/memory-and-remote-sync.md`; add schema/device pairing before a remote connector. |
 | Z-022 | todo | Platform implementer | Build provenance-tagged source adapter pipeline | Follow `docs/architecture-principles.md`: normalize sources into artifacts before retrieval, memory, or training promotion. |
 | Z-023 | todo | Runtime implementer | Add a runtime capability evaluation harness | Treat Ollama, Zeus-Tiny, and future engines as adapters measured against Zeus-owned contracts. |
+| Z-024 | done | Codex | Add local Zeus Heartbeat service and panel | Timer creates logged local observations and curiosity tasks while Zeus runs. |
+| Z-025 | todo | Background-runtime implementer | Run Zeus Heartbeat while desktop UI is closed | Requires a separate installed background worker/service with explicit lifecycle management. |
 
 ## Current User Priorities
 

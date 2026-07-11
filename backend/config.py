@@ -89,6 +89,20 @@ def get_memory_db_path() -> Path:
     return get_data_dir() / "memory" / "zeus_memory.sqlite3"
 
 
+def is_heartbeat_enabled_by_default() -> bool:
+    raw = os.getenv("ZEUSAI_HEARTBEAT_ENABLED")
+    if raw is not None:
+        return raw.lower() in {"1", "true", "yes", "on"}
+    return os.getenv("ZEUSAI_DESKTOP") == "1"
+
+
+def get_heartbeat_interval_seconds() -> int:
+    try:
+        return max(60, min(int(os.getenv("ZEUSAI_HEARTBEAT_INTERVAL_SECONDS", "900")), 86_400))
+    except ValueError:
+        return 900
+
+
 def get_knowledge_dir() -> Path:
     raw = os.getenv("ZEUSAI_KNOWLEDGE_DIR")
     if raw:

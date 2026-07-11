@@ -13,7 +13,7 @@ from fastapi.responses import StreamingResponse
 from models import (
     ChatRequest, ChatMessage, ModelPullRequest,
     ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery, TrainingCorrection, TrainingReview,
-    TrainingEvaluateRequest, KnowledgeSearchRequest, ConversationSaveRequest, MemoryUpsert
+    TrainingEvaluateRequest, KnowledgeSearchRequest, ConversationSaveRequest, MemoryUpsert, HeartbeatConfig
 )
 from ollama_client import ollama
 from zeus_native_client import zeus_native
@@ -36,6 +36,7 @@ from training_capture import (
 )
 from conversation_store import get_conversation, list_conversations, save_conversation
 from memory_store import delete_memory, list_memories, memory_context, memory_status, save_memory, search_memories
+from heartbeat_service import heartbeat
 
 app = FastAPI(
     title="Zeus AI Workbench",
@@ -82,6 +83,27 @@ async def resume():
 @app.get("/api/control/status")
 async def control_status():
     return runtime_status()
+
+
+# ─── Zeus Heartbeat ───
+@app.get("/api/heartbeat/status")
+async def heartbeat_status():
+    return heartbeat.status()
+
+
+@app.get("/api/heartbeat/activity")
+async def heartbeat_activity(limit: int = 20):
+    return {"observations": heartbeat.activity(limit)}
+
+
+@app.post("/api/heartbeat/run")
+async def heartbeat_run():
+    return await heartbeat.run_once("manual")
+
+
+@app.put("/api/heartbeat/config")
+async def heartbeat_config(req: HeartbeatConfig):
+    return await heartbeat.configure(enabled=req.enabled, interval_seconds=req.interval_seconds)
 
 # ─── Models ───
 @app.get("/api/models")
@@ -489,11 +511,17 @@ async def knowledge_search(req: KnowledgeSearchRequest):
 @app.on_event("startup")
 async def startup():
     await rag_engine.initialize()
+    await heartbeat.start()
     print("Zeus AI Workbench started!")
     if os.getenv("ZEUSAI_DESKTOP") == "1":
         print("Desktop sidecar backend is running.")
     else:
         print("Open http://localhost:8000 in your browser after starting the frontend.")
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await heartbeat.stop()
 
 if __name__ == "__main__":
     import uvicorn

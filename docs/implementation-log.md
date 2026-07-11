@@ -4,6 +4,22 @@ This file is a human-readable build trail. It should be updated when Zeus gains 
 
 Generated action logs and training traces live elsewhere. This log is for decisions, verification, and repeatability.
 
+## 2026-07-11 - Active Zeus Heartbeat
+
+Goal:
+Give Zeus a recurring, visible local observation loop that keeps its workspace organized and generates useful next questions from the actual computer state.
+
+What changed:
+
+- Added a local heartbeat scheduler enabled by default in the packaged desktop sidecar at a 15-minute interval.
+- Added persisted enablement/interval settings and Heartbeat API endpoints.
+- Each run ensures local observation/task/report folders, records model/tool/root/memory/knowledge state, writes a curiosity-task queue, and appends a secret-safe audit event.
+- Added a Heartbeat panel for status, manual runs, interval selection, and reviewing recent observations.
+
+Scope:
+
+The loop is active while Zeus is running. It does not claim autonomous web research or execute arbitrary actions; it creates inspectable tasks for the available source and task adapters to perform.
+
 ## 2026-07-11 - Dependency Extraction And Artifact Acquisition Rule
 
 Direction:

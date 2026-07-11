@@ -46,6 +46,8 @@ fn main() {
                 .env("ZEUSAI_FULL_COMPUTER_ACCESS", "1")
                 .env("ZEUSAI_ENABLE_SHELL", "1")
                 .env("ZEUSAI_COMMAND_RISK_POLICY", "log")
+                .env("ZEUSAI_HEARTBEAT_ENABLED", "1")
+                .env("ZEUSAI_HEARTBEAT_INTERVAL_SECONDS", "900")
                 .env("ZEUSAI_BACKEND_HOST", "127.0.0.1")
                 .env("ZEUSAI_BACKEND_PORT", "8000");
             let (mut rx, child) = sidecar.spawn()?;

@@ -49,6 +49,11 @@ class MemoryUpsert(BaseModel):
     tags: List[str] = []
 
 
+class HeartbeatConfig(BaseModel):
+    enabled: Optional[bool] = None
+    interval_seconds: Optional[int] = None
+
+
 class ToolCall(BaseModel):
     name: str
     parameters: Dict[str, Any]

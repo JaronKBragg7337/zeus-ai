@@ -18,6 +18,7 @@ from zeus_native_client import ZeusNativeClient
 from config import get_data_dir, get_evaluator_model_dir, get_knowledge_dir
 from conversation_store import get_conversation, list_conversations, save_conversation
 from memory_store import delete_memory, memory_context, memory_status, save_memory, search_memories
+from heartbeat_service import HeartbeatService
 
 
 @pytest.fixture(autouse=True)
@@ -79,6 +80,18 @@ def test_chat_endpoint_accepts_memory_toggle():
         )
 
     assert response.status_code == 200
+
+
+def test_heartbeat_writes_observation_and_curiosity_tasks(tmp_path, monkeypatch):
+    monkeypatch.setenv("ZEUSAI_DATA_DIR", str(tmp_path / "zeus-data"))
+    service = HeartbeatService()
+
+    observation = asyncio.run(service.run_once("test"))
+
+    assert observation["reason"] == "test"
+    assert observation["curiosity_tasks"]
+    assert list((tmp_path / "zeus-data" / "heartbeat" / "observations").glob("*.json"))
+    assert list((tmp_path / "zeus-data" / "heartbeat" / "tasks").glob("*.json"))
 
 
 def test_zeus_prompt_names_local_capabilities():

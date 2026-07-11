@@ -296,6 +296,12 @@ The Memory panel holds user-managed long-term context: facts, preferences, decis
 
 Memory is not training data and is not a silent capture of every conversation. It can be edited or deleted in the panel. See `docs/memory-and-remote-sync.md` for the planned optional Heartbeat Observatory/Supabase sync architecture.
 
+### Active Heartbeat
+
+The packaged desktop app starts a local Zeus Heartbeat every 15 minutes. It observes local model availability, tool/capability state, allowed roots, knowledge and memory status, then writes an inspectable observation and a concrete curiosity-task queue under `%LOCALAPPDATA%\Zeus AI\data\heartbeat`.
+
+Use the Heartbeat panel to run an observation immediately, pause/resume the timer, or select an interval from 5 minutes to 4 hours. The heartbeat is active while Zeus is running. It does not automatically browse the web, execute arbitrary tasks, or turn observations into training data; those capabilities will be added through source/task adapters with their own provenance records.
+
 ## Tests
 
 Backend syntax and tests:
