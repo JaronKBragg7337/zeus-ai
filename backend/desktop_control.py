@@ -10,15 +10,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import pyautogui
-import pytesseract
-from PIL import ImageGrab
+if os.name == "nt":
+    import pyautogui
+    import pytesseract
+    from PIL import ImageGrab
+else:
+    pyautogui = None
+    pytesseract = None
+    ImageGrab = None
 
 from config import get_data_dir
 
 
-pyautogui.FAILSAFE = False
-pyautogui.PAUSE = 0
+if os.name == "nt":
+    pyautogui.FAILSAFE = False
+    pyautogui.PAUSE = 0
 
 
 if os.name == "nt":

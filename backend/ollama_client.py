@@ -1,9 +1,10 @@
 """Ollama client for local LLM inference."""
 import aiohttp
 import json
+import os
 from typing import AsyncIterator, List, Dict, Any, Optional
 
-OLLAMA_BASE_URL = "http://localhost:11434"
+OLLAMA_BASE_URL = os.getenv("ZEUSAI_OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
 
 
 class OllamaClient:

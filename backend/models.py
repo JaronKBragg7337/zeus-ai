@@ -26,6 +26,7 @@ class ChatRequest(BaseModel):
     use_tools: bool = False
     use_rag: bool = False
     rag_collection: Optional[str] = None
+    use_memory: bool = True
 
 
 class ConversationMessage(BaseModel):
@@ -38,6 +39,14 @@ class ConversationSaveRequest(BaseModel):
     id: Optional[str] = None
     title: Optional[str] = None
     messages: List[ConversationMessage]
+
+
+class MemoryUpsert(BaseModel):
+    id: Optional[str] = None
+    content: str
+    category: str = "note"
+    source: str = "manual"
+    tags: List[str] = []
 
 
 class ToolCall(BaseModel):

@@ -81,6 +81,14 @@ def get_data_dir() -> Path:
     return DATA_DIR
 
 
+def get_memory_db_path() -> Path:
+    """Return the local, user-owned SQLite database used for Zeus memory."""
+    raw = os.getenv("ZEUSAI_MEMORY_DB")
+    if raw:
+        return Path(raw).expanduser()
+    return get_data_dir() / "memory" / "zeus_memory.sqlite3"
+
+
 def get_knowledge_dir() -> Path:
     raw = os.getenv("ZEUSAI_KNOWLEDGE_DIR")
     if raw:

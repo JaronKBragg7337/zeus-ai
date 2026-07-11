@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { BookOpen, Bot, History, MessageSquare, Plus, Send, Square, User, Zap } from 'lucide-react'
+import { BookOpen, Bot, Brain, History, MessageSquare, Plus, Send, Square, User, Zap } from 'lucide-react'
 
 interface ChatPanelProps {
   selectedModel: string
@@ -44,6 +44,7 @@ export default function ChatPanel({ selectedModel }: ChatPanelProps) {
   const [isStreaming, setIsStreaming] = useState(false)
   const [useTools, setUseTools] = useState(true)
   const [useRag, setUseRag] = useState(false)
+  const [useMemory, setUseMemory] = useState(true)
   const [ragCollection, setRagCollection] = useState('default')
   const [conversations, setConversations] = useState<ConversationSummary[]>([])
   const [conversationId, setConversationId] = useState<string | null>(null)
@@ -154,6 +155,7 @@ export default function ChatPanel({ selectedModel }: ChatPanelProps) {
           use_tools: useTools,
           use_rag: useRag,
           rag_collection: ragCollection,
+          use_memory: useMemory,
         }),
         signal: controller.signal,
       })
@@ -237,6 +239,7 @@ export default function ChatPanel({ selectedModel }: ChatPanelProps) {
           <div className="flex items-center gap-2">
             <button onClick={() => setUseTools(!useTools)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium ${useTools ? 'bg-primary-600/20 text-primary-400 border border-primary-600/30' : 'bg-dark-800 text-dark-400 border border-dark-700'}`}><Zap size={14} />Tools</button>
             <button onClick={() => setUseRag(!useRag)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium ${useRag ? 'bg-primary-600/20 text-primary-400 border border-primary-600/30' : 'bg-dark-800 text-dark-400 border border-dark-700'}`}><BookOpen size={14} />RAG</button>
+            <button onClick={() => setUseMemory(!useMemory)} className={`p-2 rounded-md ${useMemory ? 'bg-primary-600/20 text-primary-400 border border-primary-600/30' : 'bg-dark-800 text-dark-400 border border-dark-700'}`} title={useMemory ? 'Saved memory is enabled' : 'Saved memory is disabled'}><Brain size={14} /></button>
             {useRag && <select value={ragCollection} onChange={(event) => setRagCollection(event.target.value)} className="bg-dark-800 border border-dark-700 rounded-md text-xs px-2 py-1.5 text-dark-300"><option value="default">default</option></select>}
           </div>
         </header>

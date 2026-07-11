@@ -1,0 +1,42 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "${ZEUSAI_BACKEND_PORT:-8000}:8000"
+    environment:
+      ZEUSAI_OLLAMA_BASE_URL: ${ZEUSAI_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      ZEUSAI_DATA_DIR: /zeus/data
+      ZEUSAI_KNOWLEDGE_DIR: /zeus/knowledge
+      ZEUSAI_ALLOWED_ROOTS: /zeus/workspace
+      ZEUSAI_ENABLE_SHELL: "${ZEUSAI_ENABLE_SHELL:-0}"
+      ZEUSAI_FULL_COMPUTER_ACCESS: "0"
+    volumes:
+      - zeus-data:/zeus/data
+      - zeus-knowledge:/zeus/knowledge
+      - type: bind
+        source: ${ZEUSAI_WORKSPACE:-.}
+        target: /zeus/workspace
+        read_only: false
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "${ZEUSAI_FRONTEND_PORT:-3000}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  zeus-data:
+  zeus-knowledge:

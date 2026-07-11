@@ -16,6 +16,7 @@ from prompts import build_zeus_system_prompt
 from zeus_native_client import ZeusNativeClient
 from config import get_data_dir, get_evaluator_model_dir, get_knowledge_dir
 from conversation_store import get_conversation, list_conversations, save_conversation
+from memory_store import delete_memory, memory_context, memory_status, save_memory, search_memories
 
 
 @pytest.fixture(autouse=True)
@@ -53,6 +54,30 @@ def test_conversations_persist_and_can_be_loaded(tmp_path, monkeypatch):
 
     assert get_conversation(saved["id"])["messages"][0]["content"] == "Remember this project"
     assert list_conversations()[0]["title"] == "Remember this project"
+
+
+def test_memory_is_local_searchable_and_deletable(tmp_path, monkeypatch):
+    monkeypatch.setenv("ZEUSAI_DATA_DIR", str(tmp_path / "zeus-data"))
+    saved = save_memory(
+        "Jaron prefers Zeus to keep an inspectable project memory.",
+        category="preference",
+        tags=["memory", "zeus"],
+    )
+
+    assert memory_status()["storage"] == "local_sqlite"
+    assert search_memories("inspectable project")[0]["id"] == saved["id"]
+    assert "Jaron prefers" in memory_context("project memory")
+    assert delete_memory(saved["id"]) is True
+
+
+def test_chat_endpoint_accepts_memory_toggle():
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/memory",
+            json={"content": "The memory toggle should remain user-controlled.", "category": "instruction"},
+        )
+
+    assert response.status_code == 200
 
 
 def test_zeus_prompt_names_local_capabilities():

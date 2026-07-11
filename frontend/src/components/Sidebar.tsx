@@ -14,6 +14,7 @@ const navItems: { id: PanelType; label: string; icon: ElementType }[] = [
   { id: 'files', label: 'Files', icon: FolderOpen },
   { id: 'rag', label: 'Documents', icon: Database },
   { id: 'knowledge', label: 'Knowledge', icon: BookOpen },
+  { id: 'memory', label: 'Memory', icon: Brain },
   { id: 'models', label: 'Models', icon: Brain },
   { id: 'training', label: 'Training Review', icon: ClipboardCheck },
 ]

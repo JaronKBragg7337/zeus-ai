@@ -31,6 +31,9 @@ Status keys:
 | Z-016 | done | Codex | Persist and reopen desktop chat conversations | Added local conversation API and history pane; records are ignored by Git. |
 | Z-017 | todo | Connector implementer | Add connector registry and Slack Socket Mode integration | Read `docs/connector-handoff.md`. Do not create or commit credentials. |
 | Z-018 | todo | Desktop/game automation implementer | Build game-testing run recorder | Group screenshots, tool actions, observations, and outcomes into reviewable runs; do not label raw captures as training-ready automatically. |
+| Z-019 | done | Codex | Add local inspectable memory | Added user-managed SQLite memory, UI, retrieval for Chat/Agent, and tests. |
+| Z-020 | doing | Release automation | Validate native macOS and Linux desktop packages in GitHub Actions | Native runner workflow added; results must be checked after it runs. |
+| Z-021 | todo | Zeus + Heartbeat implementer | Add PAM memory sync and honest world visualization | Read `docs/memory-and-remote-sync.md`; add schema/device pairing before a remote connector. |
 
 ## Current User Priorities
 

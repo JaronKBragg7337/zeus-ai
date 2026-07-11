@@ -19,6 +19,9 @@ Zeus AI Workbench is a local Windows-first desktop AI workbench with:
 - native Ollama multi-step tool-call protocol
 - Windows desktop observation and control tools
 - local chat conversation history and reload UI
+- user-managed local memory retrieved by Chat and Agent
+- Docker Compose backend/frontend deployment using host Ollama
+- GitHub Actions verification and native package workflows
 
 GitHub repo:
 
@@ -88,6 +91,8 @@ Conversation history and desktop screenshots default to:
 - Added persisted chat conversations with list, load, and save API endpoints and a desktop history pane.
 - Rebuilt, installed, launched, and health-checked the Windows desktop app after these changes.
 - Slack is not connected yet. Read `docs/connector-handoff.md` before implementing it. Do not generate, paste, commit, log, or train on Slack credentials.
+- Zeus Memory is implemented locally. Read `docs/memory-and-remote-sync.md` before attempting a Heartbeat Observatory/PAM connection.
+- Docker Desktop was started and the Docker images/backend/frontend smoke checks passed. The full Compose stack shares the normal `3000`/`8000` ports with a desktop-development session, so do not run both without changing one set of ports.
 
 ## Standing Direction
 
@@ -133,7 +138,9 @@ Packaged smoke pattern:
 6. Approve one candidate through `/api/training/review`.
 7. Create a chat, reopen it from conversation history, and confirm the messages load.
 8. Ask Agent to capture the currently visible desktop and confirm a local screenshot path is returned.
-9. Stop `zeus-ai-desktop` and `zeus-backend`.
+9. Add a memory in the Memory panel, then ask a related chat question and confirm Zeus can use the saved context.
+10. Run `docker compose up --build` with Ollama running on the host, then confirm `http://localhost:3000` and `http://localhost:8000/api/health` respond.
+11. Stop `zeus-ai-desktop` and `zeus-backend`.
 
 ## Do Not Commit
 

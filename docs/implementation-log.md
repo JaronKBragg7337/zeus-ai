@@ -4,6 +4,32 @@ This file is a human-readable build trail. It should be updated when Zeus gains 
 
 Generated action logs and training traces live elsewhere. This log is for decisions, verification, and repeatability.
 
+## 2026-07-11 - Inspectable Memory And Portable Deployment Foundation
+
+Goal:
+Make Zeus useful across sessions without silently training on private use, and make the local workbench easier for other people to run and verify.
+
+What changed:
+
+- Added a local SQLite memory store with explicit categories, tags, provenance, search, deletion, and API endpoints.
+- Added a Memory panel. Chat and Agent retrieve relevant saved memory, and Chat exposes a memory toggle.
+- Added Dockerfiles and `compose.yaml` for a backend/frontend deployment that uses an already-running host Ollama service instead of bundling another model runtime.
+- Added a generic Python PyInstaller sidecar script plus GitHub Actions verification and native Windows/macOS/Linux packaging workflows.
+- Added a Heartbeat Observatory/PAM sync design. The 3D world is positioned as an honest visualization surface while local memory remains usable offline.
+
+Verification:
+
+- `25 passed` backend tests, backend compilation, frontend typecheck, and frontend production build.
+- `docker compose config` passed.
+- Docker Desktop was started; both Docker images built successfully.
+- Linux-container backend import and `/api/health` smoke test passed.
+- Nginx frontend-container HTTP smoke test returned `200`.
+- Windows MSI and NSIS installer artifacts rebuilt successfully.
+
+Current limitation:
+
+The macOS/Linux package workflow is native-runner automation, not proof that those artifacts have completed successfully; check its GitHub Actions results before claiming verification. The Docker compose stack maps standard host ports, so do not start it beside the packaged desktop app without changing one set of ports.
+
 ## 2026-07-11 - Native Tool Continuation, Desktop Control, and Conversation History
 
 Goal:

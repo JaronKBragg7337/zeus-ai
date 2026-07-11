@@ -32,6 +32,7 @@ data/processed/*
 data/conversations/*
 data/tool_traces/*
 data/screenshots/*
+data/memory/*
 data/evaluator_examples/generated*.jsonl
 data/instruction_examples/generated*.jsonl
 data/instruction_examples/candidates.jsonl

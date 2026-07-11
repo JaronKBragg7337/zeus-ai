@@ -61,6 +61,18 @@ The packaged Windows app starts with desktop and shell tools enabled. Desktop to
 
 Desktop screenshots are stored under `%LOCALAPPDATA%\Zeus AI\data\screenshots` in the installed app. They are local runtime artifacts and are ignored by Git.
 
+## One-Command Docker Deployment
+
+Zeus can run as two containers while using an Ollama service already running on the host. `compose.yaml` starts the FastAPI backend and the browser frontend, persists Zeus data/knowledge in Docker volumes, and deliberately does **not** start or download Ollama.
+
+```powershell
+docker compose up --build
+```
+
+Open `http://localhost:3000`. The backend reaches host Ollama through `http://host.docker.internal:11434` by default. On a Linux host, set `ZEUSAI_OLLAMA_BASE_URL` in a local `.env` if your Ollama service is reachable at a different address. Copy `.env.example` for optional port/workspace overrides; do not put secrets in it.
+
+Container mode disables full desktop mouse/keyboard/screen control because a container cannot safely observe or control the host desktop. Use the packaged desktop app for Windows computer use.
+
 Development:
 
 ```powershell
@@ -278,6 +290,12 @@ The frontend expects the backend on `http://localhost:8000` and runs on `http://
 
 Chat conversations are persisted locally and can be reopened from the conversation history pane. In a packaged desktop install, they are saved under `%LOCALAPPDATA%\Zeus AI\data\conversations`; in repository development they are saved under `data/conversations/`. Conversation records are not committed to Git.
 
+### Inspectable Memory
+
+The Memory panel holds user-managed long-term context: facts, preferences, decisions, project notes, and instructions. It is a local SQLite store at `%LOCALAPPDATA%\Zeus AI\data\memory\zeus_memory.sqlite3` in the packaged app. Relevant saved entries are added to Chat and Agent context by default, and Chat exposes a memory toggle.
+
+Memory is not training data and is not a silent capture of every conversation. It can be edited or deleted in the panel. See `docs/memory-and-remote-sync.md` for the planned optional Heartbeat Observatory/Supabase sync architecture.
+
 ## Tests
 
 Backend syntax and tests:
@@ -307,6 +325,7 @@ npm run typecheck
 - Shell execution is disabled unless `ZEUSAI_ENABLE_SHELL=1`.
 - Automation actions are logged locally.
 - Screenshot files, conversation records, tool traces, training candidates, model weights, and connector credentials are local artifacts and are ignored by Git.
+- User-managed memory is stored locally by default. Its SQLite database is ignored by Git.
 - The kill switch can stop future tool execution and halt agent loops between steps.
 - This is a local developer tool and does not include authentication. Do not expose it to a public network.
 
@@ -324,6 +343,7 @@ npm run typecheck
 - Desktop observation/control is Windows-only and uses screenshots, OCR, windows handles, and absolute coordinates. It does not yet provide robust game-state perception, replay, video capture, or browser DOM automation.
 - Tool-capable Ollama models are required for reliable multi-step agent work. Zeus now preserves Ollama's native assistant tool-call message followed by the tool result, but a weak or misconfigured model can still stop a task without selecting the next tool.
 - Conversation history is local-only. It has no export, search, delete, sync, team sharing, or cross-device synchronization yet.
+- Local Zeus Memory is implemented, but remote Heartbeat/Supabase synchronization and 3D visualization are designed rather than implemented.
 - Slack/mobile communication is planned but not implemented. A workspace-installed Slack app and local Socket Mode connector are the intended first path; no Slack token, secret, or workspace data belongs in this repository.
 - The default RAG fallback is lexical, not embedding-based semantic search.
 - Full-computer access, shell enablement, and command-risk policy are environment/runtime configuration today; they need a proper desktop settings UI.
@@ -339,3 +359,4 @@ Zeus is also documenting the method used to build it so other people and future 
 - `docs/implementation-log.md`
 - `docs/repeatable-build-playbook.md`
 - `docs/connector-handoff.md`
+- `docs/memory-and-remote-sync.md`
