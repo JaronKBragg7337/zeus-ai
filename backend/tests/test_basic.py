@@ -1,4 +1,5 @@
 import sys
+import os
 from pathlib import Path
 import asyncio
 import json
@@ -102,6 +103,7 @@ def test_native_client_reports_untrained_model(tmp_path, monkeypatch):
     assert "Zeus-Tiny has not been trained yet" in result
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Packaged desktop app-data paths are Windows-specific.")
 def test_desktop_data_dir_uses_local_app_data(tmp_path, monkeypatch):
     monkeypatch.delenv("ZEUSAI_DATA_DIR", raising=False)
     monkeypatch.setenv("ZEUSAI_DESKTOP", "1")
@@ -110,6 +112,7 @@ def test_desktop_data_dir_uses_local_app_data(tmp_path, monkeypatch):
     assert get_data_dir() == tmp_path / "Zeus AI" / "data"
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Packaged desktop app-data paths are Windows-specific.")
 def test_desktop_knowledge_dir_uses_local_app_data(tmp_path, monkeypatch):
     monkeypatch.delenv("ZEUSAI_KNOWLEDGE_DIR", raising=False)
     monkeypatch.setenv("ZEUSAI_DESKTOP", "1")
@@ -118,6 +121,7 @@ def test_desktop_knowledge_dir_uses_local_app_data(tmp_path, monkeypatch):
     assert get_knowledge_dir() == tmp_path / "Zeus AI" / "knowledge"
 
 
+@pytest.mark.skipif(os.name != "nt", reason="Packaged desktop app-data paths are Windows-specific.")
 def test_desktop_evaluator_model_dir_uses_local_app_data(tmp_path, monkeypatch):
     monkeypatch.delenv("ZEUSAI_EVALUATOR_MODEL_DIR", raising=False)
     monkeypatch.setenv("ZEUSAI_DESKTOP", "1")
