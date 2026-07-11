@@ -7,7 +7,25 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 
 from audit_log import append_action
-from config import PROJECT_ROOT, get_allowed_roots, get_command_risk_policy, is_shell_enabled
+from config import (
+    PROJECT_ROOT,
+    get_allowed_roots,
+    get_command_risk_policy,
+    is_full_computer_access_enabled,
+    is_shell_enabled,
+)
+from desktop_control import (
+    capture_screen,
+    click_mouse,
+    focus_window,
+    get_screen_info,
+    list_windows,
+    move_mouse,
+    press_keys,
+    read_screen_text,
+    type_text,
+    wait_for,
+)
 from runtime_control import stop_requested
 from training_capture import capture_tool_call
 
@@ -151,6 +169,131 @@ def get_tool_definitions() -> List[Dict[str, Any]]:
                 }
             }
         })
+    if is_full_computer_access_enabled():
+        tools.extend([
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_screen_info",
+                    "description": "Get screen dimensions and current mouse position before interacting with the desktop.",
+                    "parameters": {"type": "object", "properties": {}},
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "list_windows",
+                    "description": "List visible top-level desktop windows with titles, handles, process IDs, and screen bounds.",
+                    "parameters": {"type": "object", "properties": {}},
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "focus_window",
+                    "description": "Restore and focus a desktop window using a handle returned by list_windows.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"handle": {"type": "integer", "description": "Window handle from list_windows."}},
+                        "required": ["handle"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "capture_screen",
+                    "description": "Capture the desktop or a screen region to a timestamped local PNG for review by Zeus or other AI workers.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "path": {"type": "string", "description": "Optional destination PNG path."},
+                            "left": {"type": "integer"}, "top": {"type": "integer"},
+                            "width": {"type": "integer"}, "height": {"type": "integer"},
+                        },
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "read_screen_text",
+                    "description": "Use local OCR to read the desktop or a screen region.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "left": {"type": "integer"}, "top": {"type": "integer"},
+                            "width": {"type": "integer"}, "height": {"type": "integer"},
+                        },
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "move_mouse",
+                    "description": "Move the mouse cursor to absolute desktop coordinates.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"x": {"type": "integer"}, "y": {"type": "integer"}, "duration_ms": {"type": "integer", "default": 0}},
+                        "required": ["x", "y"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "click_mouse",
+                    "description": "Click at absolute desktop coordinates.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "x": {"type": "integer"}, "y": {"type": "integer"},
+                            "button": {"type": "string", "default": "left"},
+                            "clicks": {"type": "integer", "default": 1},
+                            "interval_ms": {"type": "integer", "default": 0},
+                        },
+                        "required": ["x", "y"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "type_text",
+                    "description": "Type literal text into the currently focused desktop application.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"text": {"type": "string"}, "interval_ms": {"type": "integer", "default": 0}},
+                        "required": ["text"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "press_keys",
+                    "description": "Press a keyboard combination in the currently focused desktop application, such as [\"ctrl\", \"s\"].",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"keys": {"type": "array", "items": {"type": "string"}}, "interval_ms": {"type": "integer", "default": 0}},
+                        "required": ["keys"],
+                    },
+                },
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "wait_for",
+                    "description": "Wait for a specified duration between desktop actions.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"milliseconds": {"type": "integer"}},
+                        "required": ["milliseconds"],
+                    },
+                },
+            },
+        ])
     return tools
 
 
@@ -183,6 +326,26 @@ def execute_tool(name: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
             result = _get_project_structure(**parameters)
         elif name == "calculate":
             result = _calculate(**parameters)
+        elif name == "get_screen_info":
+            result = get_screen_info()
+        elif name == "list_windows":
+            result = list_windows()
+        elif name == "focus_window":
+            result = focus_window(**parameters)
+        elif name == "capture_screen":
+            result = capture_screen(**parameters)
+        elif name == "read_screen_text":
+            result = read_screen_text(**parameters)
+        elif name == "move_mouse":
+            result = move_mouse(**parameters)
+        elif name == "click_mouse":
+            result = click_mouse(**parameters)
+        elif name == "type_text":
+            result = type_text(**parameters)
+        elif name == "press_keys":
+            result = press_keys(**parameters)
+        elif name == "wait_for":
+            result = wait_for(**parameters)
         else:
             result = {"error": f"Unknown tool: {name}"}
     except Exception as e:

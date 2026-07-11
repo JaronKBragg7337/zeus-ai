@@ -1,6 +1,6 @@
 # Zeus AI Current State
 
-Last updated: 2026-07-01
+Last updated: 2026-07-11
 
 ## Project
 
@@ -16,6 +16,9 @@ Zeus AI Workbench is a local Windows-first desktop AI workbench with:
 - training review queue
 - Zeus Evaluator v1 candidate scoring
 - first Zeus-native tiny model path
+- native Ollama multi-step tool-call protocol
+- Windows desktop observation and control tools
+- local chat conversation history and reload UI
 
 GitHub repo:
 
@@ -47,21 +50,16 @@ Read these files first:
 6. `training/README.md`
 7. `knowledge/README.md`
 
-## Local Build Outputs
+## Current Verified Build
 
-The verified local desktop build copy is:
-
-```text
-C:\Users\lilli\.codex\local-builds\omnilocal-ai
-```
-
-Current verified Windows app outputs:
+The current Windows release was built from this repository and installed as a normal application. A source build produces the installer artifacts under:
 
 ```text
-C:\Users\lilli\.codex\local-builds\omnilocal-ai\frontend\src-tauri\target\release\zeus-ai-desktop.exe
-C:\Users\lilli\.codex\local-builds\omnilocal-ai\frontend\src-tauri\target\release\bundle\msi\Zeus AI_0.1.0_x64_en-US.msi
-C:\Users\lilli\.codex\local-builds\omnilocal-ai\frontend\src-tauri\target\release\bundle\nsis\Zeus AI_0.1.0_x64-setup.exe
+frontend\src-tauri\target\release\bundle\msi\
+frontend\src-tauri\target\release\bundle\nsis\
 ```
+
+Those generated installers and the PyInstaller sidecar are ignored by Git. A normal Windows installation uses `C:\Program Files\Zeus AI`; generated per-user data uses `%LOCALAPPDATA%\Zeus AI`.
 
 Generated traces and app data default to:
 
@@ -74,6 +72,22 @@ Packaged desktop Evaluator v1 model default:
 ```text
 C:\Users\lilli\AppData\Local\Zeus AI\models\zeus-evaluator-v1\evaluator.json
 ```
+
+Conversation history and desktop screenshots default to:
+
+```text
+%LOCALAPPDATA%\Zeus AI\data\conversations
+%LOCALAPPDATA%\Zeus AI\data\screenshots
+```
+
+## 2026-07-11 Verified Changes
+
+- Fixed the native Ollama tool protocol. Zeus now preserves the assistant tool-call envelope and sends the result back as an Ollama `tool` message, which allows models such as `qwen3.5:4b` to continue after a tool call.
+- Added Windows desktop tools: screen information, visible-window enumeration/focus, screenshot capture, OCR, mouse/keyboard input, and waits. These tools register when full-computer mode is enabled; the packaged desktop sidecar enables that mode.
+- Live-tested a local agent request to capture the visible desktop. It called `capture_screen`, saved a local PNG, then returned a completion.
+- Added persisted chat conversations with list, load, and save API endpoints and a desktop history pane.
+- Rebuilt, installed, launched, and health-checked the Windows desktop app after these changes.
+- Slack is not connected yet. Read `docs/connector-handoff.md` before implementing it. Do not generate, paste, commit, log, or train on Slack credentials.
 
 ## Standing Direction
 
@@ -100,10 +114,10 @@ Backend:
 .\.venv\Scripts\python.exe training\data\build_dataset.py
 ```
 
-Frontend from local build copy:
+Frontend from the repository:
 
 ```powershell
-cd C:\Users\lilli\.codex\local-builds\omnilocal-ai\frontend
+cd frontend
 npm run typecheck
 npm run build
 npm run desktop:build
@@ -117,7 +131,9 @@ Packaged smoke pattern:
 4. Check `/api/training/candidates`.
 5. Score one candidate through `/api/training/evaluate`.
 6. Approve one candidate through `/api/training/review`.
-7. Stop `zeus-ai-desktop` and `zeus-backend`.
+7. Create a chat, reopen it from conversation history, and confirm the messages load.
+8. Ask Agent to capture the currently visible desktop and confirm a local screenshot path is returned.
+9. Stop `zeus-ai-desktop` and `zeus-backend`.
 
 ## Do Not Commit
 
@@ -126,6 +142,8 @@ Packaged smoke pattern:
 - `frontend/src-tauri/target/`
 - `frontend/src-tauri/binaries/*`
 - `data/tool_traces/*`
+- `data/screenshots/*`
+- `data/conversations/*`
 - `data/instruction_examples/candidates.jsonl`
 - `data/instruction_examples/approved.jsonl`
 - `data/instruction_examples/rejected.jsonl`

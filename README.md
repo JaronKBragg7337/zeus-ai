@@ -1,8 +1,8 @@
 # Zeus AI Workbench
 
-Zeus AI Workbench is a local FastAPI + React/Vite app for working with Ollama models, browsing an allowed project folder, running a constrained local agent, and indexing small documents for local RAG.
+Zeus AI Workbench is a local FastAPI + React/Vite desktop workbench for working with Ollama models, local files, desktop tools, local RAG, and Zeus-owned-model experiments.
 
-The app does not require cloud APIs, paid services, secrets, API keys, or telemetry.
+The base application does not require cloud APIs, paid services, secrets, API keys, or telemetry. Optional connectors such as Slack are not implemented yet and must keep their credentials outside Git.
 
 Zeus now also includes the first Zeus-native model track. Ollama/Qwen can remain a temporary runtime or communication layer, but `training/` contains a from-scratch `Zeus-Tiny` path for building local Zeus-owned weights over time.
 
@@ -50,6 +50,16 @@ The sidecar uses:
 - `ZEUSAI_BACKEND_PORT=8000`
 
 Closing the desktop window stops the backend sidecar process tree.
+
+The packaged Windows app starts with desktop and shell tools enabled. Desktop tools are currently Windows-only and include:
+
+- visible-window discovery and focusing
+- full-desktop or region screenshots saved as local PNG files
+- local OCR through Tesseract
+- mouse movement/clicks and keyboard typing/hotkeys
+- timed waits for multi-step desktop tasks
+
+Desktop screenshots are stored under `%LOCALAPPDATA%\Zeus AI\data\screenshots` in the installed app. They are local runtime artifacts and are ignored by Git.
 
 Development:
 
@@ -188,6 +198,7 @@ API:
 - Health: `http://localhost:8000/api/health`
 - Models: `http://localhost:8000/api/models`
 - Chat: `POST http://localhost:8000/api/chat`
+- Conversations: `GET /api/conversations`, `GET /api/conversations/{id}`, `POST /api/conversations`
 - Kill switch: `POST http://localhost:8000/api/control/kill`
 - Resume: `POST http://localhost:8000/api/control/resume`
 - Audit log: `GET http://localhost:8000/api/audit/actions`
@@ -208,6 +219,14 @@ To let Zeus see all local drives that the current Windows user can access:
 $env:ZEUSAI_FULL_COMPUTER_ACCESS = "1"
 .\.venv\Scripts\python.exe backend\main.py
 ```
+
+When full-computer mode is enabled on Windows, the following local tools are registered in addition to file/shell tools:
+
+- `get_screen_info`, `list_windows`, `focus_window`
+- `capture_screen`, `read_screen_text`
+- `move_mouse`, `click_mouse`, `type_text`, `press_keys`, `wait_for`
+
+The agent is instructed to inspect visible windows or the screen before interacting with the desktop. It records normal tool/audit data locally. The current desktop layer is coordinate-based; it is not yet a browser DOM automation system or a game-engine-specific testing framework.
 
 Shell command execution is disabled by default. To enable it for allowed roots only:
 
@@ -255,6 +274,10 @@ npm run typecheck
 
 The frontend expects the backend on `http://localhost:8000` and runs on `http://localhost:3000`.
 
+### Conversation History
+
+Chat conversations are persisted locally and can be reopened from the conversation history pane. In a packaged desktop install, they are saved under `%LOCALAPPDATA%\Zeus AI\data\conversations`; in repository development they are saved under `data/conversations/`. Conversation records are not committed to Git.
+
 ## Tests
 
 Backend syntax and tests:
@@ -283,6 +306,7 @@ npm run typecheck
 - Local RAG stores are ignored by Git.
 - Shell execution is disabled unless `ZEUSAI_ENABLE_SHELL=1`.
 - Automation actions are logged locally.
+- Screenshot files, conversation records, tool traces, training candidates, model weights, and connector credentials are local artifacts and are ignored by Git.
 - The kill switch can stop future tool execution and halt agent loops between steps.
 - This is a local developer tool and does not include authentication. Do not expose it to a public network.
 
@@ -297,8 +321,12 @@ npm run typecheck
 ## Known Limitations
 
 - The desktop app has Windows sidecar packaging now; macOS/Linux desktop packaging has not been verified.
+- Desktop observation/control is Windows-only and uses screenshots, OCR, windows handles, and absolute coordinates. It does not yet provide robust game-state perception, replay, video capture, or browser DOM automation.
+- Tool-capable Ollama models are required for reliable multi-step agent work. Zeus now preserves Ollama's native assistant tool-call message followed by the tool result, but a weak or misconfigured model can still stop a task without selecting the next tool.
+- Conversation history is local-only. It has no export, search, delete, sync, team sharing, or cross-device synchronization yet.
+- Slack/mobile communication is planned but not implemented. A workspace-installed Slack app and local Socket Mode connector are the intended first path; no Slack token, secret, or workspace data belongs in this repository.
 - The default RAG fallback is lexical, not embedding-based semantic search.
-- Full-computer use is supported through environment configuration today; it needs a proper desktop settings UI.
+- Full-computer access, shell enablement, and command-risk policy are environment/runtime configuration today; they need a proper desktop settings UI.
 - APIs/connectors/MCP are planned but not built in yet.
 - Future user-facing packaging should add install/update flows, first-run model checks, an action log viewer, connector management, and per-workspace automation policy.
 
@@ -310,3 +338,4 @@ Zeus is also documenting the method used to build it so other people and future 
 - `docs/ai-coworker-protocol.md`
 - `docs/implementation-log.md`
 - `docs/repeatable-build-playbook.md`
+- `docs/connector-handoff.md`

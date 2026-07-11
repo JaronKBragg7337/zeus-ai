@@ -23,6 +23,7 @@ The initial principle is visibility before policy:
 2. Full-computer use
    - Support all local drives when `ZEUSAI_FULL_COMPUTER_ACCESS=1`.
    - Keep local action logs.
+   - Completed first Windows tool layer: windows, screenshots, OCR, mouse, keyboard, and waits.
    - Add a visible desktop settings screen for access mode and runtime status.
 
 3. Automatic work
@@ -40,6 +41,7 @@ The initial principle is visibility before policy:
 5. APIs and connectors
    - Local-only remains the default.
    - Optional API keys can enable cloud providers or external tools.
+   - First detailed handoff is `docs/connector-handoff.md` for Slack Socket Mode.
    - Connector model should support MCP-style tools, local plugins, and authenticated APIs.
    - Secrets must be user-supplied and stored outside Git.
 
@@ -78,3 +80,10 @@ The initial principle is visibility before policy:
    - API key storage plan
    - MCP adapter plan
    - per-connector action logs
+
+5. Add game-test run recording:
+   - task/request and selected target window
+   - ordered desktop actions and observations
+   - linked local screenshots
+   - final outcome and reviewer label
+   - keep raw runs separate from approved training data

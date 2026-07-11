@@ -13,7 +13,7 @@ from fastapi.responses import StreamingResponse
 from models import (
     ChatRequest, ChatMessage, ModelPullRequest,
     ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery, TrainingCorrection, TrainingReview,
-    TrainingEvaluateRequest, KnowledgeSearchRequest
+    TrainingEvaluateRequest, KnowledgeSearchRequest, ConversationSaveRequest
 )
 from ollama_client import ollama
 from zeus_native_client import zeus_native
@@ -34,6 +34,7 @@ from training_capture import (
     list_candidate_examples,
     review_candidate_example,
 )
+from conversation_store import get_conversation, list_conversations, save_conversation
 
 app = FastAPI(
     title="Zeus AI Workbench",
@@ -106,6 +107,34 @@ async def delete_model(model_name: str):
     return {"success": success}
 
 # ─── Chat ───
+@app.get("/api/conversations")
+async def conversations(limit: int = 200):
+    return {"conversations": list_conversations(limit)}
+
+
+@app.get("/api/conversations/{conversation_id}")
+async def conversation(conversation_id: str):
+    try:
+        record = get_conversation(conversation_id)
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from error
+    if not record:
+        raise HTTPException(404, "Conversation not found")
+    return record
+
+
+@app.post("/api/conversations")
+async def save_chat_conversation(req: ConversationSaveRequest):
+    try:
+        return save_conversation(
+            req.id,
+            req.title,
+            [message.model_dump() for message in req.messages],
+        )
+    except ValueError as error:
+        raise HTTPException(400, str(error)) from error
+
+
 @app.post("/api/chat")
 async def chat(req: ChatRequest):
     """Stream chat completions."""
@@ -169,6 +198,18 @@ def _format_tool_result_for_model(name: str, result: dict) -> str:
     return f"Tool '{name}' result:\n{result_str}\n\nUse this result to continue. If the task is complete, answer the user directly."
 
 
+def _assistant_tool_message(message: dict) -> dict:
+    """Keep Ollama's assistant tool-call envelope intact across turns."""
+    assistant = {
+        "role": "assistant",
+        "content": message.get("content") or "",
+        "tool_calls": message.get("tool_calls") or [],
+    }
+    if message.get("thinking"):
+        assistant["thinking"] = message["thinking"]
+    return assistant
+
+
 async def _stream_chat_with_tools(messages: List[dict], req: ChatRequest, tools: List[dict]):
     working_messages = list(messages)
     used_tool = False
@@ -190,8 +231,7 @@ async def _stream_chat_with_tools(messages: List[dict], req: ChatRequest, tools:
             yield "data: [DONE]\n\n"
             return
 
-        if content.strip():
-            working_messages.append({"role": "assistant", "content": content})
+        working_messages.append(_assistant_tool_message(message))
 
         for call in tool_calls:
             function = call.get("function", {})
@@ -210,7 +250,8 @@ async def _stream_chat_with_tools(messages: List[dict], req: ChatRequest, tools:
             yield _sse_data(f"Using local tool: {tool_name}")
             result = execute_tool(tool_name, arguments)
             working_messages.append({
-                "role": "user",
+                "role": "tool",
+                "tool_name": tool_name,
                 "content": _format_tool_result_for_model(tool_name, result),
             })
 

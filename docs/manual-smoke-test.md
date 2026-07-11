@@ -45,6 +45,16 @@ Open `http://localhost:3000`.
    - Ask it to list the files in the current project folder.
    - Confirm it uses constrained local file tools. Shell execution should stay disabled unless explicitly enabled.
 
-6. No Cloud APIs
+6. Desktop tools (Windows full-computer mode)
+   - In Agent, ask: `Capture a screenshot of the currently visible desktop and report the saved file path.`
+   - Confirm the run calls `capture_screen` and returns a local PNG path.
+   - Confirm the PNG is saved under the configured Zeus data directory, not in the repository's tracked files.
+
+7. Conversation history
+   - Send a short chat message.
+   - Start a new conversation, then reopen the saved thread from the history pane.
+   - Confirm the earlier messages load and that the active conversation remains after an app restart.
+
+8. No Cloud APIs
    - Confirm no API key or secret is required.
    - Confirm model calls go through local Ollama.

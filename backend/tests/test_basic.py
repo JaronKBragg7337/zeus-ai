@@ -9,11 +9,13 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from main import app
-from agent import run_agent_task, _extract_native_tool_call
+from agent import run_agent_task, _assistant_tool_message, _extract_native_tool_call
 from tools import execute_tool
+from tools import get_tool_definitions
 from prompts import build_zeus_system_prompt
 from zeus_native_client import ZeusNativeClient
 from config import get_data_dir, get_evaluator_model_dir, get_knowledge_dir
+from conversation_store import get_conversation, list_conversations, save_conversation
 
 
 @pytest.fixture(autouse=True)
@@ -31,6 +33,26 @@ def test_health_endpoint_reports_allowed_roots():
     assert data["allowed_roots"]
     assert "shell_enabled" in data
     assert "native_model_enabled" in data
+
+
+def test_full_computer_mode_registers_desktop_tools(monkeypatch):
+    monkeypatch.setenv("ZEUSAI_FULL_COMPUTER_ACCESS", "1")
+
+    names = {tool["function"]["name"] for tool in get_tool_definitions()}
+
+    assert {"get_screen_info", "list_windows", "capture_screen", "click_mouse", "press_keys"} <= names
+
+
+def test_conversations_persist_and_can_be_loaded(tmp_path, monkeypatch):
+    monkeypatch.setenv("ZEUSAI_DATA_DIR", str(tmp_path / "zeus-data"))
+
+    saved = save_conversation(None, None, [
+        {"role": "user", "content": "Remember this project", "timestamp": "2026-07-11T12:00:00Z"},
+        {"role": "assistant", "content": "I will.", "timestamp": "2026-07-11T12:00:01Z"},
+    ])
+
+    assert get_conversation(saved["id"])["messages"][0]["content"] == "Remember this project"
+    assert list_conversations()[0]["title"] == "Remember this project"
 
 
 def test_zeus_prompt_names_local_capabilities():
@@ -181,6 +203,21 @@ def test_extract_native_tool_call_parses_string_arguments():
 
 def test_extract_native_tool_call_handles_missing_tool_calls():
     assert _extract_native_tool_call({"role": "assistant", "content": "done"}) is None
+
+
+def test_agent_preserves_native_tool_call_envelope():
+    message = {
+        "role": "assistant",
+        "content": "",
+        "thinking": "Need a tool.",
+        "tool_calls": [{"function": {"name": "list_windows", "arguments": {}}}],
+    }
+
+    assistant = _assistant_tool_message(message)
+
+    assert assistant["role"] == "assistant"
+    assert assistant["tool_calls"] == message["tool_calls"]
+    assert assistant["thinking"] == "Need a tool."
 
 
 def test_kill_switch_blocks_tool_execution():

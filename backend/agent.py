@@ -12,7 +12,7 @@ from training_capture import capture_agent_completion
 
 
 AGENT_INSTRUCTIONS = """You are in Agent mode and can use tools to accomplish tasks.
-You have access to file operations, shell commands, search, and calculations.
+You have access to file operations, shell commands, search, calculations, and, when full-computer mode is enabled, desktop observation and control tools.
 
 When given a task:
 1. Think step by step about what needs to be done
@@ -23,6 +23,7 @@ Always prefer using tools over asking the user to do things manually.
 When reading code or configs, summarize key findings rather than dumping everything.
 When writing files, ensure proper formatting and completeness.
 
+For desktop work, inspect the screen or relevant windows before clicking or typing. Capture screenshots when the result should be reviewed by another worker.
 You can only call one tool at a time. Wait for the result before deciding next steps.
 """
 
@@ -97,14 +98,12 @@ async def run_agent_task(task: str, model: str = "qwen3.5:4b",
 
             yield {"type": "tool_result", "name": tool_name, "result": result}
 
-            # Add to conversation. If the model used a native tool call, its
-            # content is usually empty, so record the call itself for context.
+            # Preserve the native assistant tool call and return a proper
+            # Ollama tool-role result. Sending this as a user message breaks
+            # the model's multi-step tool-call state.
             result_str = json.dumps(result, indent=2)[:4000]
-            assistant_record = response_text or json.dumps(
-                {"tool_call": {"name": tool_name, "parameters": tool_params}}
-            )
-            messages.append({"role": "assistant", "content": assistant_record})
-            messages.append({"role": "user", "content": f"Tool '{tool_name}' result:\n{result_str}\n\nContinue with the task."})
+            messages.append(_assistant_tool_message(response_message))
+            messages.append({"role": "tool", "tool_name": tool_name, "content": result_str})
         else:
             # No tool call, task is done
             if not response_text:
@@ -194,6 +193,18 @@ def _extract_native_tool_call(message: Dict[str, Any]) -> Optional[Dict[str, Any
             arguments = {}
         return {"name": name, "parameters": arguments}
     return None
+
+
+def _assistant_tool_message(message: Dict[str, Any]) -> Dict[str, Any]:
+    """Keep the exact native tool-call envelope expected by Ollama."""
+    assistant = {
+        "role": "assistant",
+        "content": message.get("content") or "",
+        "tool_calls": message.get("tool_calls") or [],
+    }
+    if message.get("thinking"):
+        assistant["thinking"] = message["thinking"]
+    return assistant
 
 
 def _extract_tool_call(text: str) -> Optional[Dict[str, Any]]:

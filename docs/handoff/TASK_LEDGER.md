@@ -26,6 +26,11 @@ Status keys:
 | Z-008 | todo | Codex 5.5 | Package and smoke-test final desktop build | Needed after Knowledge panel and backend endpoints are committed. |
 | Z-009 | done | Codex 5.5 | Add Evaluator v1 local scorer | Trains from approved/rejected/corrected examples and scores candidates through API/UI. |
 | Z-010 | todo | Codex 5.5 | Surface evaluator score automatically in review queue | Current UI scores on button press. |
+| Z-014 | done | Codex | Preserve native Ollama tool-call context across multi-step chat and agent runs | Verified live with `qwen3.5:4b` calling `capture_screen` then completing. |
+| Z-015 | done | Codex | Add Windows desktop observation/control and package it | Installed app exposes screen, window, OCR, mouse, keyboard, and wait tools in full-computer mode. |
+| Z-016 | done | Codex | Persist and reopen desktop chat conversations | Added local conversation API and history pane; records are ignored by Git. |
+| Z-017 | todo | Connector implementer | Add connector registry and Slack Socket Mode integration | Read `docs/connector-handoff.md`. Do not create or commit credentials. |
+| Z-018 | todo | Desktop/game automation implementer | Build game-testing run recorder | Group screenshots, tool actions, observations, and outcomes into reviewable runs; do not label raw captures as training-ready automatically. |
 
 ## Current User Priorities
 
@@ -35,6 +40,8 @@ Status keys:
 4. Zeus should have separate local knowledge storage/indexing.
 5. Zeus should eventually train Zeus-owned model weights.
 6. The repo should document the build method so others can repeat it.
+7. Zeus should communicate with the user through an optional Slack/mobile connector while it is running, without putting credentials in Git.
+8. The repository must reflect verified current behavior, known gaps, and handoff-ready next steps.
 
 ## Handoff Rule
 

@@ -28,6 +28,18 @@ class ChatRequest(BaseModel):
     rag_collection: Optional[str] = None
 
 
+class ConversationMessage(BaseModel):
+    role: MessageRole
+    content: str
+    timestamp: str
+
+
+class ConversationSaveRequest(BaseModel):
+    id: Optional[str] = None
+    title: Optional[str] = None
+    messages: List[ConversationMessage]
+
+
 class ToolCall(BaseModel):
     name: str
     parameters: Dict[str, Any]

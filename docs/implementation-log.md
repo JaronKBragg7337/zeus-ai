@@ -4,6 +4,40 @@ This file is a human-readable build trail. It should be updated when Zeus gains 
 
 Generated action logs and training traces live elsewhere. This log is for decisions, verification, and repeatability.
 
+## 2026-07-11 - Native Tool Continuation, Desktop Control, and Conversation History
+
+Goal:
+Make the installed Windows app complete desktop-oriented multi-step tasks, retain chat threads, and give future contributors an accurate handoff.
+
+What changed:
+
+- Corrected the Ollama tool-call conversation protocol in both agent and chat loops. After a model returns `assistant.tool_calls`, Zeus now appends that assistant message and returns each tool result with `role: tool` and `tool_name` before asking the model for the next step.
+- Added Windows desktop primitives in `backend/desktop_control.py` and registered them behind full-computer mode: screen information, visible-window enumeration/focus, screenshot capture, OCR, mouse control, clicks, typing, hotkeys, and waits.
+- Added local conversation storage and `GET/POST /api/conversations` endpoints.
+- Added a chat-history pane that lists, saves, and reloads local conversations.
+- Updated `.gitignore` so local screenshots cannot be staged accidentally.
+- Added `docs/connector-handoff.md` and refreshed the handoff files to make Slack/mobile work an explicit, secret-safe next task.
+
+Verification:
+
+- `python -m compileall backend`
+- `python -m pytest backend\\tests -q` -> 23 passed
+- `pnpm typecheck`
+- `pnpm build`
+- `pnpm desktop:build`
+- Installed the generated MSI, launched Zeus AI, checked backend health, and checked the conversation endpoint.
+- Ran a live local `qwen3.5:4b` agent task that called `capture_screen`, saved a local PNG, and then returned a completion.
+
+Current limitation:
+
+The desktop layer is working Windows automation, not robust game understanding or browser DOM control. Training Review still captures individual tool-level candidates; it does not yet create a curated multimodal game-test trajectory. Slack/mobile communication is documented but not implemented or authorized.
+
+Follow-up:
+
+- Implement Z-017 connector registry and Slack Socket Mode using secret-safe local configuration.
+- Implement Z-018 game-test run records with linked screenshots/actions/outcomes.
+- Add browser automation and a desktop settings surface.
+
 ## 2026-07-01 - Desktop Sidecar Packaging
 
 Goal:
