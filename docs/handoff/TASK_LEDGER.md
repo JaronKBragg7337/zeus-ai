@@ -34,6 +34,8 @@ Status keys:
 | Z-019 | done | Codex | Add local inspectable memory | Added user-managed SQLite memory, UI, retrieval for Chat/Agent, and tests. |
 | Z-020 | doing | Release automation | Validate native macOS and Linux desktop packages in GitHub Actions | Native runner workflow added; results must be checked after it runs. |
 | Z-021 | todo | Zeus + Heartbeat implementer | Add PAM memory sync and honest world visualization | Read `docs/memory-and-remote-sync.md`; add schema/device pairing before a remote connector. |
+| Z-022 | todo | Platform implementer | Build provenance-tagged source adapter pipeline | Follow `docs/architecture-principles.md`: normalize sources into artifacts before retrieval, memory, or training promotion. |
+| Z-023 | todo | Runtime implementer | Add a runtime capability evaluation harness | Treat Ollama, Zeus-Tiny, and future engines as adapters measured against Zeus-owned contracts. |
 
 ## Current User Priorities
 

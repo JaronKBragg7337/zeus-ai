@@ -360,3 +360,4 @@ Zeus is also documenting the method used to build it so other people and future 
 - `docs/repeatable-build-playbook.md`
 - `docs/connector-handoff.md`
 - `docs/memory-and-remote-sync.md`
+- `docs/architecture-principles.md`

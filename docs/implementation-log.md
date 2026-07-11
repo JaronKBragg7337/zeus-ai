@@ -4,6 +4,18 @@ This file is a human-readable build trail. It should be updated when Zeus gains 
 
 Generated action logs and training traces live elsewhere. This log is for decisions, verification, and repeatability.
 
+## 2026-07-11 - Dependency Extraction And Artifact Acquisition Rule
+
+Direction:
+Use outside systems as evidence and technique sources, not as permanent Zeus dependencies. Separate observed results, mechanisms, Zeus-owned contracts, and replaceable adapters.
+
+What changed:
+
+- Added `docs/architecture-principles.md`.
+- Defined model/runtime independence so an inference engine must satisfy Zeus's streaming, tool-call, memory, and cancellation contracts before becoming a supported adapter.
+- Defined a provenance-tagged artifact pipeline for future web, local, Slack, GitHub, Heartbeat/PAM, and other source adapters.
+- Clarified that Heartbeat's 3D world should project real local/synced records, while local Zeus remains useful offline.
+
 ## 2026-07-11 - Inspectable Memory And Portable Deployment Foundation
 
 Goal:
