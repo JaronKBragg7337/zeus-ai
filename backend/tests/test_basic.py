@@ -113,6 +113,18 @@ def test_slack_token_prefix_validation():
         _validate_token("xapp-wrong-kind", "xoxb-")
 
 
+def test_socket_mode_bolt_app_does_not_require_a_slack_signing_secret():
+    from slack_bolt.app.async_app import AsyncApp
+
+    app = AsyncApp(
+        token="xoxb-test-token",
+        signing_secret="socket-mode-no-http",
+        request_verification_enabled=False,
+    )
+
+    assert app is not None
+
+
 def test_zeus_prompt_names_local_capabilities():
     prompt = build_zeus_system_prompt(tools_enabled=True, rag_enabled=True)
 

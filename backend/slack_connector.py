@@ -64,7 +64,13 @@ class SlackConnector:
                 from slack_bolt.app.async_app import AsyncApp
                 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
-                app = AsyncApp(token=bot_token)
+                # Socket Mode receives authenticated envelopes over Slack's WebSocket,
+                # not inbound HTTP requests, so no signing secret is required here.
+                app = AsyncApp(
+                    token=bot_token,
+                    signing_secret="socket-mode-no-http",
+                    request_verification_enabled=False,
+                )
 
                 @app.event("message")
                 async def direct_message(event: dict[str, Any]) -> None:
