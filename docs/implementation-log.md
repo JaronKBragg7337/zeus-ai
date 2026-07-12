@@ -4,6 +4,26 @@ This file is a human-readable build trail. It should be updated when Zeus gains 
 
 Generated action logs and training traces live elsewhere. This log is for decisions, verification, and repeatability.
 
+## 2026-07-12 - Slack Socket Mode Connector
+
+Goal:
+Connect Zeus to Slack mobile/desktop communication without placing credentials in chat, Git, logs, or training data.
+
+What changed:
+
+- Added an optional Slack Socket Mode connector using Bolt for Python.
+- Added local `xoxb-` bot-token and `xapp-` app-token storage through Windows Credential Manager.
+- Added a Slack Connector panel. It submits credentials only to the local backend, clears inputs after submission, and displays status without returning token values.
+- Incoming Slack DMs are persisted as local Zeus conversations and answered using the local Ollama model with relevant saved memory. The first Slack path does not expose desktop-control tools.
+- Expanded audit/training capture redaction for connector credential key names.
+
+Verification:
+
+- Installed `keyring` and `slack-bolt` dependencies.
+- Verified the active keyring backend is `WinVaultKeyring`.
+- Added status/token-redaction tests; backend suite passed with 28 tests.
+- Frontend typecheck/build and Docker Compose configuration passed.
+
 ## 2026-07-11 - Active Zeus Heartbeat
 
 Goal:

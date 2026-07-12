@@ -16,6 +16,7 @@ const navItems: { id: PanelType; label: string; icon: ElementType }[] = [
   { id: 'knowledge', label: 'Knowledge', icon: BookOpen },
   { id: 'memory', label: 'Memory', icon: Brain },
   { id: 'heartbeat', label: 'Heartbeat', icon: Activity },
+  { id: 'slack', label: 'Slack', icon: MessageSquare },
   { id: 'models', label: 'Models', icon: Brain },
   { id: 'training', label: 'Training Review', icon: ClipboardCheck },
 ]

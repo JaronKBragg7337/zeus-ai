@@ -54,6 +54,16 @@ class HeartbeatConfig(BaseModel):
     interval_seconds: Optional[int] = None
 
 
+class SlackConfigRequest(BaseModel):
+    bot_token: Optional[str] = None
+    app_token: Optional[str] = None
+
+
+class SlackMessageRequest(BaseModel):
+    channel: str
+    text: str
+
+
 class ToolCall(BaseModel):
     name: str
     parameters: Dict[str, Any]

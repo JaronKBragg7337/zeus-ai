@@ -29,7 +29,7 @@ Status keys:
 | Z-014 | done | Codex | Preserve native Ollama tool-call context across multi-step chat and agent runs | Verified live with `qwen3.5:4b` calling `capture_screen` then completing. |
 | Z-015 | done | Codex | Add Windows desktop observation/control and package it | Installed app exposes screen, window, OCR, mouse, keyboard, and wait tools in full-computer mode. |
 | Z-016 | done | Codex | Persist and reopen desktop chat conversations | Added local conversation API and history pane; records are ignored by Git. |
-| Z-017 | todo | Connector implementer | Add connector registry and Slack Socket Mode integration | Read `docs/connector-handoff.md`. Do not create or commit credentials. |
+| Z-017 | done | Codex | Add Slack Socket Mode integration | Local Credential Manager storage, status panel, inbound DM conversation/reply flow, and secret-safe logs are implemented. |
 | Z-018 | todo | Desktop/game automation implementer | Build game-testing run recorder | Group screenshots, tool actions, observations, and outcomes into reviewable runs; do not label raw captures as training-ready automatically. |
 | Z-019 | done | Codex | Add local inspectable memory | Added user-managed SQLite memory, UI, retrieval for Chat/Agent, and tests. |
 | Z-020 | doing | Release automation | Validate native macOS and Linux desktop packages in GitHub Actions | Native runner workflow added; results must be checked after it runs. |
@@ -38,6 +38,7 @@ Status keys:
 | Z-023 | todo | Runtime implementer | Add a runtime capability evaluation harness | Treat Ollama, Zeus-Tiny, and future engines as adapters measured against Zeus-owned contracts. |
 | Z-024 | done | Codex | Add local Zeus Heartbeat service and panel | Timer creates logged local observations and curiosity tasks while Zeus runs. |
 | Z-025 | todo | Background-runtime implementer | Run Zeus Heartbeat while desktop UI is closed | Requires a separate installed background worker/service with explicit lifecycle management. |
+| Z-026 | todo | Slack connector implementer | Add proactive update destination and background Slack service | The current Socket Mode connector runs while Zeus is open. |
 
 ## Current User Priorities
 

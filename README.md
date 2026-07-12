@@ -350,7 +350,7 @@ npm run typecheck
 - Tool-capable Ollama models are required for reliable multi-step agent work. Zeus now preserves Ollama's native assistant tool-call message followed by the tool result, but a weak or misconfigured model can still stop a task without selecting the next tool.
 - Conversation history is local-only. It has no export, search, delete, sync, team sharing, or cross-device synchronization yet.
 - Local Zeus Memory is implemented, but remote Heartbeat/Supabase synchronization and 3D visualization are designed rather than implemented.
-- Slack/mobile communication is planned but not implemented. A workspace-installed Slack app and local Socket Mode connector are the intended first path; no Slack token, secret, or workspace data belongs in this repository.
+- Slack/mobile communication is available through the optional local Slack Connector panel. It uses Socket Mode and Windows Credential Manager for an `xoxb-` bot token plus an `xapp-` app token; no Slack token, secret, or workspace data belongs in this repository. The Slack app still needs Socket Mode, `message.im`, and the documented bot scopes before it can receive DMs.
 - The default RAG fallback is lexical, not embedding-based semantic search.
 - Full-computer access, shell enablement, and command-risk policy are environment/runtime configuration today; they need a proper desktop settings UI.
 - APIs/connectors/MCP are planned but not built in yet.

@@ -6,8 +6,8 @@ This document is the starting point for an AI coworker or developer adding an ex
 
 - Zeus runs locally as a FastAPI backend with a React/Tauri desktop shell.
 - The packaged Windows app can use local desktop tools, local files, local Ollama models, RAG, and local conversation history.
-- There is no connector framework, Slack client, token storage implementation, background service, or inbound/outbound message route in the repository yet.
-- A Slack app can be created and installed in a workspace separately, but that does not connect Zeus until the code below exists and local credentials are configured.
+- Zeus includes a first Slack Socket Mode connector, local Windows Credential Manager storage, a desktop Slack panel, inbound-DM handling, local conversation persistence, and a status-only connector API.
+- A Slack app must still be configured and installed in a workspace separately before it can communicate with Zeus.
 
 ## First Connector: Slack
 
@@ -23,18 +23,24 @@ Perform these in the Slack app configuration only when the owner is ready to aut
 2. Add bot OAuth scopes: `chat:write`, `im:read`, and `im:history`.
 3. Subscribe to the `message.im` bot event.
 4. Install or reinstall the app to the target workspace.
-5. Store the bot token and app-level token locally, outside the repository.
+5. In Zeus's Slack Connector panel, enter the bot token (`xoxb-`) and app-level token (`xapp-`). Zeus sends them only to its local backend, stores them in Windows Credential Manager, and clears the form values.
 
 Do not place token values, client secrets, signing secrets, copied Slack event bodies, workspace exports, screenshots, or user messages in Git, docs, test fixtures, logs, or training candidates.
 
-### Recommended Implementation Shape
+### Current Implementation
 
-1. Add a small connector registry so optional connectors can report `disabled`, `configuring`, `connected`, or `error` without affecting local Zeus when not configured.
-2. Add a Slack Socket Mode worker that starts in the FastAPI lifecycle only when local Slack credentials exist.
-3. Route inbound direct messages to a local Zeus task/conversation record. Persist an inbound/outbound audit event with secret-safe metadata only.
-4. Add a `send_slack_message` capability for explicit Zeus updates. The destination should be an owner-selected direct-message channel or user ID, not a hardcoded workspace/user value.
-5. Add a desktop Connector Settings panel that shows status and accepts configuration without displaying stored secrets after entry.
-6. Keep continuous operation separate from app startup. Socket Mode can receive events while Zeus is running; receiving messages while the desktop app is closed requires an explicit always-running user service or scheduled task.
+- `backend/slack_connector.py` uses Bolt for Python with the async Socket Mode handler.
+- The connector starts with the local backend when both locally stored tokens exist.
+- Incoming `message.im` events are stored as a local `slack-<channel>` conversation and receive a local Ollama reply without desktop tools.
+- `GET /api/connectors/slack/status` reports configuration/connection state but never token values.
+- The Slack panel can remove both local credentials to support rotation.
+
+### Follow-up Implementation Shape
+
+1. Add a general connector registry for Slack, Heartbeat/PAM, browser, and future adapters.
+2. Add an owner-selected destination/channel setting for proactive Zeus updates.
+3. Add user-configurable model selection and optional tool/task routing for inbound Slack DMs.
+4. Keep continuous operation separate from app startup. Socket Mode can receive events while Zeus is running; receiving messages while the desktop app is closed requires an explicit always-running user service or scheduled task.
 
 ## Secret Handling
 

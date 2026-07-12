@@ -9,8 +9,9 @@ import TrainingReviewPanel from './components/TrainingReviewPanel'
 import KnowledgePanel from './components/KnowledgePanel'
 import MemoryPanel from './components/MemoryPanel'
 import HeartbeatPanel from './components/HeartbeatPanel'
+import SlackPanel from './components/SlackPanel'
 
-export type PanelType = 'chat' | 'agent' | 'files' | 'models' | 'rag' | 'training' | 'knowledge' | 'memory' | 'heartbeat'
+export type PanelType = 'chat' | 'agent' | 'files' | 'models' | 'rag' | 'training' | 'knowledge' | 'memory' | 'heartbeat' | 'slack'
 
 function App() {
   const [activePanel, setActivePanel] = useState<PanelType>('chat')
@@ -34,6 +35,8 @@ function App() {
         return <MemoryPanel />
       case 'heartbeat':
         return <HeartbeatPanel />
+      case 'slack':
+        return <SlackPanel />
       case 'training':
         return <TrainingReviewPanel />
       default:

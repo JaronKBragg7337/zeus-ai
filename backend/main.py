@@ -13,7 +13,8 @@ from fastapi.responses import StreamingResponse
 from models import (
     ChatRequest, ChatMessage, ModelPullRequest,
     ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery, TrainingCorrection, TrainingReview,
-    TrainingEvaluateRequest, KnowledgeSearchRequest, ConversationSaveRequest, MemoryUpsert, HeartbeatConfig
+    TrainingEvaluateRequest, KnowledgeSearchRequest, ConversationSaveRequest, MemoryUpsert, HeartbeatConfig,
+    SlackConfigRequest, SlackMessageRequest
 )
 from ollama_client import ollama
 from zeus_native_client import zeus_native
@@ -37,6 +38,7 @@ from training_capture import (
 from conversation_store import get_conversation, list_conversations, save_conversation
 from memory_store import delete_memory, list_memories, memory_context, memory_status, save_memory, search_memories
 from heartbeat_service import heartbeat
+from slack_connector import slack_connector
 
 app = FastAPI(
     title="Zeus AI Workbench",
@@ -104,6 +106,33 @@ async def heartbeat_run():
 @app.put("/api/heartbeat/config")
 async def heartbeat_config(req: HeartbeatConfig):
     return await heartbeat.configure(enabled=req.enabled, interval_seconds=req.interval_seconds)
+
+
+# ─── Optional Connectors ───
+@app.get("/api/connectors/slack/status")
+async def slack_status():
+    return slack_connector.status()
+
+
+@app.put("/api/connectors/slack/config")
+async def configure_slack(req: SlackConfigRequest):
+    try:
+        return await slack_connector.configure(bot_token=req.bot_token, app_token=req.app_token)
+    except (ValueError, RuntimeError) as error:
+        raise HTTPException(400, str(error)) from error
+
+
+@app.delete("/api/connectors/slack/config")
+async def clear_slack_configuration():
+    return await slack_connector.clear()
+
+
+@app.post("/api/connectors/slack/message")
+async def send_slack_message(req: SlackMessageRequest):
+    try:
+        return await slack_connector.send_message(req.channel, req.text)
+    except RuntimeError as error:
+        raise HTTPException(409, str(error)) from error
 
 # ─── Models ───
 @app.get("/api/models")
@@ -512,6 +541,7 @@ async def knowledge_search(req: KnowledgeSearchRequest):
 async def startup():
     await rag_engine.initialize()
     await heartbeat.start()
+    await slack_connector.start()
     print("Zeus AI Workbench started!")
     if os.getenv("ZEUSAI_DESKTOP") == "1":
         print("Desktop sidecar backend is running.")
@@ -522,6 +552,7 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown():
     await heartbeat.stop()
+    await slack_connector.stop()
 
 if __name__ == "__main__":
     import uvicorn

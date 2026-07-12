@@ -22,6 +22,11 @@ SENSITIVE_KEYS = {
     "password",
     "secret",
     "token",
+    "bot_token",
+    "app_token",
+    "access_token",
+    "client_secret",
+    "signing_secret",
 }
 CORRECTION_MARKERS = (
     "correction:",

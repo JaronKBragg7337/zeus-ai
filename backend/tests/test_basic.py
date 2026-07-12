@@ -19,6 +19,7 @@ from config import get_data_dir, get_evaluator_model_dir, get_knowledge_dir
 from conversation_store import get_conversation, list_conversations, save_conversation
 from memory_store import delete_memory, memory_context, memory_status, save_memory, search_memories
 from heartbeat_service import HeartbeatService
+from slack_connector import SlackConnector, _validate_token
 
 
 @pytest.fixture(autouse=True)
@@ -92,6 +93,24 @@ def test_heartbeat_writes_observation_and_curiosity_tasks(tmp_path, monkeypatch)
     assert observation["curiosity_tasks"]
     assert list((tmp_path / "zeus-data" / "heartbeat" / "observations").glob("*.json"))
     assert list((tmp_path / "zeus-data" / "heartbeat" / "tasks").glob("*.json"))
+
+
+def test_slack_status_reports_presence_without_exposing_tokens(monkeypatch):
+    values = {"slack_bot_token": "xoxb-secret-value", "slack_app_token": "xapp-secret-value"}
+    monkeypatch.setattr("slack_connector.get_secret", lambda name: values.get(name))
+
+    status = SlackConnector().status()
+
+    assert status["configured"] is True
+    assert status["bot_token_saved"] is True
+    assert status["app_token_saved"] is True
+    assert "secret-value" not in json.dumps(status)
+
+
+def test_slack_token_prefix_validation():
+    _validate_token("xoxb-valid", "xoxb-")
+    with pytest.raises(ValueError):
+        _validate_token("xapp-wrong-kind", "xoxb-")
 
 
 def test_zeus_prompt_names_local_capabilities():
