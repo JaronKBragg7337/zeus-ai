@@ -4,6 +4,36 @@ This file is a human-readable build trail. It should be updated when Zeus gains 
 
 Generated action logs and training traces live elsewhere. This log is for decisions, verification, and repeatability.
 
+## 2026-07-12 - Automatic Knowledge Watch
+
+What changed:
+
+- Added a persisted local Knowledge watcher, enabled by default in the packaged desktop app.
+- It fingerprints supported source files under the existing Knowledge folders every 30 seconds and rebuilds the index only when the fingerprint changes.
+- Added status, manual-run, and configuration API endpoints plus a Knowledge-panel control.
+- Watch state and audit records are local. Source material remains separate from memory and training data.
+
+Verification:
+
+- Added a test that proves first index, unchanged-folder skip, and changed-file rebuild behavior.
+- Backend suite passed with 31 tests; frontend typecheck and production build passed.
+
+## 2026-07-12 - Installed App Repair And Shared Project Directory
+
+What changed:
+
+- Rebuilt the current Windows MSI and NSIS installer artifacts.
+- Removed the prior machine-wide Zeus MSI through an elevated Windows Installer operation, then installed the fresh MSI successfully.
+- Verified the installed `C:\Program Files\Zeus AI\zeus-ai-desktop.exe` starts its bundled `zeus-backend.exe`, with full-computer access enabled.
+- Verified the installed app retains local data under `%LOCALAPPDATA%\Zeus AI`, including the local Repository Map snapshot and Windows Credential Manager Slack credentials.
+- Published `HeartbeatCenter/index.html` to `heartbeat-observatory`; the deployed 3D page fetches the same public repository manifest that Zeus imports locally.
+
+Verification:
+
+- Installed backend `/api/health` returned `ok` with full-computer access enabled.
+- Repository Map status reported 47 repositories and 47 summaries.
+- Slack Socket Mode status reported connected after the installed app started.
+
 ## 2026-07-12 - Slack Socket Mode Connector
 
 Goal:

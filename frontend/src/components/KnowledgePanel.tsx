@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BookOpen, RefreshCw, Search } from 'lucide-react'
+import { BookOpen, RefreshCw, Search, Radio } from 'lucide-react'
 
 const API_BASE = 'http://localhost:8000'
 
@@ -20,8 +20,19 @@ type KnowledgeMatch = {
   content: string
 }
 
+type WatchStatus = {
+  enabled: boolean
+  interval_seconds: number
+  scheduler_active: boolean
+  last_checked_at?: string
+  last_indexed_at?: string
+  rebuild_count: number
+  last_error?: string
+}
+
 export default function KnowledgePanel() {
   const [status, setStatus] = useState<KnowledgeStatus | null>(null)
+  const [watch, setWatch] = useState<WatchStatus | null>(null)
   const [query, setQuery] = useState('')
   const [matches, setMatches] = useState<KnowledgeMatch[]>([])
   const [loading, setLoading] = useState(false)
@@ -29,8 +40,12 @@ export default function KnowledgePanel() {
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/knowledge/status`)
+      const [res, watchRes] = await Promise.all([
+        fetch(`${API_BASE}/api/knowledge/status`),
+        fetch(`${API_BASE}/api/knowledge/watch/status`),
+      ])
       setStatus(await res.json())
+      if (watchRes.ok) setWatch(await watchRes.json())
     } catch {
       setMessage('Knowledge status is unavailable.')
     }
@@ -75,6 +90,24 @@ export default function KnowledgePanel() {
     setLoading(false)
   }
 
+  const configureWatch = async (enabled: boolean) => {
+    setLoading(true)
+    setMessage('')
+    try {
+      const res = await fetch(`${API_BASE}/api/knowledge/watch/config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled }),
+      })
+      if (!res.ok) throw new Error('Knowledge watch configuration failed.')
+      setWatch(await res.json())
+      setMessage(enabled ? 'Knowledge watch is on. Changed source files will be indexed automatically.' : 'Knowledge watch is off.')
+    } catch {
+      setMessage('Could not change Knowledge watch.')
+    }
+    setLoading(false)
+  }
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <header className="flex items-center justify-between px-6 py-3 border-b border-dark-800 bg-dark-900/50">
@@ -101,6 +134,11 @@ export default function KnowledgePanel() {
           <Stat label="Files" value={String(status?.files_indexed || 0)} />
           <Stat label="Chunks" value={String(status?.chunks || 0)} />
           <Stat label="Built" value={status?.built_at || 'never'} />
+        </section>
+
+        <section className="bg-dark-900/40 border border-dark-800 rounded-lg p-4 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3"><Radio size={17} className={watch?.enabled ? 'text-emerald-400' : 'text-dark-600'} /><div><p className="text-sm text-dark-200">Automatic Knowledge watch</p><p className="text-xs text-dark-500">{watch?.enabled ? `Checks local source folders every ${watch.interval_seconds}s` : 'Manual indexing only'}{watch?.last_indexed_at ? ` · last indexed ${watch.last_indexed_at}` : ''}</p></div></div>
+          <button onClick={() => void configureWatch(!watch?.enabled)} disabled={loading} className={`px-3 py-2 rounded-md text-xs font-medium disabled:opacity-50 ${watch?.enabled ? 'bg-emerald-600/15 text-emerald-300 border border-emerald-600/30' : 'bg-dark-800 text-dark-300 border border-dark-700'}`}>{watch?.enabled ? 'Watch on' : 'Watch off'}</button>
         </section>
 
         <section className="bg-dark-900/40 border border-dark-800 rounded-lg p-4">

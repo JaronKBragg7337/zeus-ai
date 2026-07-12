@@ -120,6 +120,20 @@ def get_knowledge_index_dir() -> Path:
     return get_knowledge_dir() / "index"
 
 
+def is_knowledge_watch_enabled_by_default() -> bool:
+    raw = os.getenv("ZEUSAI_KNOWLEDGE_WATCH_ENABLED")
+    if raw is not None:
+        return raw.lower() in {"1", "true", "yes", "on"}
+    return os.getenv("ZEUSAI_DESKTOP") == "1"
+
+
+def get_knowledge_watch_interval_seconds() -> int:
+    try:
+        return max(5, min(int(os.getenv("ZEUSAI_KNOWLEDGE_WATCH_INTERVAL_SECONDS", "30")), 3600))
+    except ValueError:
+        return 30
+
+
 def is_training_capture_enabled() -> bool:
     return os.getenv("ZEUSAI_CAPTURE_TRAINING", "1").lower() not in {"0", "false", "no", "off"}
 

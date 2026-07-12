@@ -69,6 +69,11 @@ class RepositoryMapSyncRequest(BaseModel):
     rebuild_index: bool = True
 
 
+class KnowledgeWatchConfig(BaseModel):
+    enabled: Optional[bool] = None
+    interval_seconds: Optional[int] = None
+
+
 class ToolCall(BaseModel):
     name: str
     parameters: Dict[str, Any]

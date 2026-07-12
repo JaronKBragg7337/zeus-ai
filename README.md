@@ -175,6 +175,8 @@ Invoke-RestMethod -Method Post http://localhost:8000/api/knowledge/search -Conte
 
 The desktop app includes a Knowledge panel for rebuilding and searching the local index.
 
+The packaged desktop app also watches these local Knowledge source folders by default. It checks for changes every 30 seconds and rebuilds only when files change. The Knowledge panel can pause/resume this local watcher.
+
 In the packaged desktop app, Zeus Knowledge defaults to `%LOCALAPPDATA%\Zeus AI\knowledge`.
 
 ### Repository Map Source

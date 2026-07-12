@@ -9,6 +9,15 @@ Status keys:
 - `blocked`
 - `done`
 
+## Current Snapshot
+
+- Installed Windows app: verified from current `master` on 2026-07-12.
+- Slack: connected through local Socket Mode; tokens are stored only in Windows Credential Manager.
+- Repository Map: synced locally with 47 repositories / 47 summaries and provenance records.
+- Shared public directory: `https://github.com/JaronKBragg7337/Summary-Of-repos-Memory-linker`.
+- Shared 3D projection: `https://www.heartbeatobservatory.com/HeartbeatCenter/`.
+- First task for any AI: read `CURRENT_STATE.md`, this ledger, and the implementation log before proposing changes.
+
 ## Active Tasks
 
 | ID | Status | Owner Role | Task | Notes |
@@ -20,10 +29,10 @@ Status keys:
 | Z-005 | todo | Claude Cowork Opus | Risk and scaling critique for AWS training-gym plan | No cloud resources until user explicitly decides. |
 | Z-006 | done | Fable 5 | Product framing and founder-system narrative | See docs/product/market-and-vision.md. Market map + layered L0-L5 vision. |
 | Z-011 | todo | Codex 5.5 | Apply review findings F-1..F-5 | F-1 (replace calculate eval with AST) is highest priority. |
-| Z-012 | todo | Codex 5.5 | Build L2 folder-watch + auto-index | Top product move: removes manual upload, answers desktop vision. |
-| Z-013 | todo | Codex 5.5 | Build L3 inspectable memory panel | Biggest market differentiator per Z-006 research. |
+| Z-012 | done | Codex | Build L2 folder-watch + auto-index | Local polling watcher detects changed Knowledge source files, rebuilds only on change, persists status, and is controllable from the Knowledge panel. |
+| Z-013 | done | Codex | Build L3 inspectable memory panel | Completed as Z-019; retained here so historical task references remain valid. |
 | Z-007 | todo | Claude Code Sonnet | Independent code review after local indexing lands | Focus on bugs, tests, packaging. |
-| Z-008 | todo | Codex 5.5 | Package and smoke-test final desktop build | Needed after Knowledge panel and backend endpoints are committed. |
+| Z-008 | done | Codex | Package and smoke-test current Windows desktop build | Fresh MSI installed and live-installed backend, Repository Map, and Slack connection were verified on 2026-07-12. |
 | Z-009 | done | Codex 5.5 | Add Evaluator v1 local scorer | Trains from approved/rejected/corrected examples and scores candidates through API/UI. |
 | Z-010 | todo | Codex 5.5 | Surface evaluator score automatically in review queue | Current UI scores on button press. |
 | Z-014 | done | Codex | Preserve native Ollama tool-call context across multi-step chat and agent runs | Verified live with `qwen3.5:4b` calling `capture_screen` then completing. |

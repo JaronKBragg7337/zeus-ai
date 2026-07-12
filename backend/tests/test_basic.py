@@ -21,6 +21,7 @@ from memory_store import delete_memory, memory_context, memory_status, save_memo
 from heartbeat_service import HeartbeatService
 from slack_connector import SlackConnector, _validate_token
 from repository_map import RepositoryMapSource
+from knowledge_watch import KnowledgeWatchService
 
 
 @pytest.fixture(autouse=True)
@@ -260,6 +261,25 @@ def test_repository_map_sync_writes_provenance_and_indexes_knowledge(tmp_path, m
     provenance = json.loads((knowledge_root / "project_docs" / "repository-map" / "provenance.json").read_text(encoding="utf-8"))
     assert provenance["artifacts"][0]["source_url"] == "https://example.test/summaries/world.md"
     assert result["knowledge_index"]["files_indexed"] == 4
+
+
+def test_knowledge_watch_rebuilds_when_a_source_file_changes(tmp_path, monkeypatch):
+    knowledge_root = tmp_path / "knowledge"
+    source = knowledge_root / "project_docs" / "watch.md"
+    source.parent.mkdir(parents=True)
+    source.write_text("First knowledge watch fact.", encoding="utf-8")
+    monkeypatch.setenv("ZEUSAI_KNOWLEDGE_DIR", str(knowledge_root))
+
+    service = KnowledgeWatchService()
+    first = asyncio.run(service.run_once("test"))
+    unchanged = asyncio.run(service.run_once("test"))
+    source.write_text("Changed knowledge watch fact.", encoding="utf-8")
+    second = asyncio.run(service.run_once("test"))
+
+    assert first["indexed"] is True
+    assert unchanged["indexed"] is False
+    assert second["indexed"] is True
+    assert service.status()["rebuild_count"] == 2
 
 
 def test_agent_lists_files_without_shell_or_llm_wait():

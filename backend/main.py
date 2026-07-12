@@ -14,7 +14,7 @@ from models import (
     ChatRequest, ChatMessage, ModelPullRequest,
     ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery, TrainingCorrection, TrainingReview,
     TrainingEvaluateRequest, KnowledgeSearchRequest, ConversationSaveRequest, MemoryUpsert, HeartbeatConfig,
-    SlackConfigRequest, SlackMessageRequest, RepositoryMapSyncRequest
+    SlackConfigRequest, SlackMessageRequest, RepositoryMapSyncRequest, KnowledgeWatchConfig
 )
 from ollama_client import ollama
 from zeus_native_client import zeus_native
@@ -40,6 +40,7 @@ from memory_store import delete_memory, list_memories, memory_context, memory_st
 from heartbeat_service import heartbeat
 from slack_connector import slack_connector
 from repository_map import RepositoryMapError, repository_map
+from knowledge_watch import knowledge_watch
 
 app = FastAPI(
     title="Zeus AI Workbench",
@@ -550,10 +551,26 @@ async def knowledge_index_rebuild():
 async def knowledge_search(req: KnowledgeSearchRequest):
     return search_knowledge(req.query, req.top_k)
 
+
+@app.get("/api/knowledge/watch/status")
+async def knowledge_watch_status():
+    return knowledge_watch.status()
+
+
+@app.post("/api/knowledge/watch/run")
+async def knowledge_watch_run():
+    return await knowledge_watch.run_once("manual")
+
+
+@app.put("/api/knowledge/watch/config")
+async def knowledge_watch_config(req: KnowledgeWatchConfig):
+    return await knowledge_watch.configure(enabled=req.enabled, interval_seconds=req.interval_seconds)
+
 # ─── Startup ───
 @app.on_event("startup")
 async def startup():
     await rag_engine.initialize()
+    await knowledge_watch.start()
     await heartbeat.start()
     await slack_connector.start()
     print("Zeus AI Workbench started!")
@@ -565,6 +582,7 @@ async def startup():
 
 @app.on_event("shutdown")
 async def shutdown():
+    await knowledge_watch.stop()
     await heartbeat.stop()
     await slack_connector.stop()
 
