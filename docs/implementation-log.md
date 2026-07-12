@@ -22,9 +22,9 @@ Verification:
 
 What changed:
 
-- Rebuilt the current Windows MSI and NSIS installer artifacts.
+- Rebuilt the current Windows MSI and NSIS installer artifacts as version `0.1.1`.
 - Removed the prior machine-wide Zeus MSI through an elevated Windows Installer operation, then installed the fresh MSI successfully.
-- Verified the installed `C:\Program Files\Zeus AI\zeus-ai-desktop.exe` starts its bundled `zeus-backend.exe`, with full-computer access enabled.
+- Verified a normal in-place upgrade from version `0.1.0` to `0.1.1`, then confirmed the installed `C:\Program Files\Zeus AI\zeus-ai-desktop.exe` starts its bundled `zeus-backend.exe`, with full-computer access enabled.
 - Verified the installed app retains local data under `%LOCALAPPDATA%\Zeus AI`, including the local Repository Map snapshot and Windows Credential Manager Slack credentials.
 - Published `HeartbeatCenter/index.html` to `heartbeat-observatory`; the deployed 3D page fetches the same public repository manifest that Zeus imports locally.
 

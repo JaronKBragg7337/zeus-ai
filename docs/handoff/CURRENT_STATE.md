@@ -89,7 +89,7 @@ Conversation history and desktop screenshots default to:
 
 ## 2026-07-12 Verified State
 
-- Rebuilt Zeus from current `master`, removed the previous machine-wide MSI through an elevated Windows Installer operation, and installed the fresh MSI successfully.
+- Rebuilt Zeus from current `master`, removed the previous machine-wide MSI through an elevated Windows Installer operation, and installed the fresh MSI successfully. The current installed Windows version is `0.1.1`; a normal in-place upgrade from `0.1.0` to `0.1.1` was verified.
 - The installed desktop application and its bundled backend are currently verified at `C:\Program Files\Zeus AI\zeus-ai-desktop.exe` and `C:\Program Files\Zeus AI\zeus-backend.exe`.
 - The installed backend passed `/api/health` with full-computer access enabled. The temporary source-run backend was stopped after the installed app was launched.
 - Slack Socket Mode is connected using local Windows Credential Manager values. Do not request, print, commit, or train on its `xoxb-` / `xapp-` tokens.

@@ -11,7 +11,7 @@ Status keys:
 
 ## Current Snapshot
 
-- Installed Windows app: verified from current `master` on 2026-07-12.
+- Installed Windows app: version `0.1.1`, verified from current `master` on 2026-07-12 through a normal in-place MSI upgrade.
 - Slack: connected through local Socket Mode; tokens are stored only in Windows Credential Manager.
 - Repository Map: synced locally with 47 repositories / 47 summaries and provenance records.
 - Shared public directory: `https://github.com/JaronKBragg7337/Summary-Of-repos-Memory-linker`.
@@ -32,7 +32,7 @@ Status keys:
 | Z-012 | done | Codex | Build L2 folder-watch + auto-index | Local polling watcher detects changed Knowledge source files, rebuilds only on change, persists status, and is controllable from the Knowledge panel. |
 | Z-013 | done | Codex | Build L3 inspectable memory panel | Completed as Z-019; retained here so historical task references remain valid. |
 | Z-007 | todo | Claude Code Sonnet | Independent code review after local indexing lands | Focus on bugs, tests, packaging. |
-| Z-008 | done | Codex | Package and smoke-test current Windows desktop build | Fresh MSI installed and live-installed backend, Repository Map, and Slack connection were verified on 2026-07-12. |
+| Z-008 | done | Codex | Package and smoke-test current Windows desktop build | Version 0.1.1 upgraded successfully from 0.1.0; live installed backend, Knowledge watch, Repository Map, and Slack connection were verified on 2026-07-12. |
 | Z-009 | done | Codex 5.5 | Add Evaluator v1 local scorer | Trains from approved/rejected/corrected examples and scores candidates through API/UI. |
 | Z-010 | todo | Codex 5.5 | Surface evaluator score automatically in review queue | Current UI scores on button press. |
 | Z-014 | done | Codex | Preserve native Ollama tool-call context across multi-step chat and agent runs | Verified live with `qwen3.5:4b` calling `capture_screen` then completing. |
