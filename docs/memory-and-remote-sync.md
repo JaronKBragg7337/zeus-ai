@@ -27,6 +27,19 @@ The 3D data-center/library idea can work well when each visible object has an ho
 
 The world is the interface. The data model remains the source of truth.
 
+## Repository Map: One Shared Project Directory
+
+`Summary-Of-repos-Memory-linker` is the verified public directory for the account's repositories. Zeus now treats its `repos.json` manifest as an optional source adapter:
+
+1. The Repository Map panel downloads the manifest and only its declared relative summary files.
+2. Zeus writes the material under local `knowledge/project_docs/repository-map/`, with a source URL, fetch time, and SHA-256 content hash in `provenance.json`.
+3. Zeus rebuilds the local knowledge index. The map is retrieval material, never automatic behavior-training data or private memory.
+4. `/HeartbeatCenter/` can render the same public `repos.json` directly at runtime. Its deployment guide is already maintained by the linker repository.
+
+This makes the linker manifest the shared public project directory. Zeus has a local cached/searchable projection; Heartbeat has a visual projection; neither needs a manually copied second inventory.
+
+The repository map is separate from PAM device synchronization. A future PAM connector should send only explicit device status and user-authorized records to the private control plane, never publish local knowledge or private memory merely because it was indexed.
+
 ## Recommended Sync Architecture
 
 1. Zeus writes to local SQLite first, so normal computer use still works without a network.

@@ -327,3 +327,9 @@ Desktop app rebuilt so the installed app carries the fix.
 Follow-up:
 Z-011 apply review findings (F-1 first), Z-012 folder-watch + auto-index,
 Z-013 inspectable memory panel.
+# 2026-07-12 - Repository Map Source Adapter
+
+- Added a Repository Map panel and API for importing a configurable HTTPS `repos.json` manifest into local Zeus Knowledge.
+- The adapter accepts only declared relative Markdown/text summaries, bounds downloads, writes `provenance.json` with source URLs/fetch time/SHA-256 hashes, and then rebuilds the local index.
+- `Summary-Of-repos-Memory-linker` remains the public canonical directory. Zeus and Heartbeat use projections of that manifest instead of maintaining manually copied inventories.
+- This data is factual retrieval material only. It does not become private memory or behavior-training data automatically.

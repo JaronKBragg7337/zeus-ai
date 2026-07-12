@@ -64,6 +64,11 @@ class SlackMessageRequest(BaseModel):
     text: str
 
 
+class RepositoryMapSyncRequest(BaseModel):
+    manifest_url: Optional[str] = None
+    rebuild_index: bool = True
+
+
 class ToolCall(BaseModel):
     name: str
     parameters: Dict[str, Any]

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ElementType } from 'react'
-import { MessageSquare, Bot, FolderOpen, Brain, Database, Settings, Cpu, Power, RotateCcw, ClipboardCheck, BookOpen, Activity } from 'lucide-react'
+import { MessageSquare, Bot, FolderOpen, Brain, Database, Settings, Cpu, Power, RotateCcw, ClipboardCheck, BookOpen, Activity, Network } from 'lucide-react'
 import type { PanelType } from '../App'
 
 interface SidebarProps {
@@ -16,6 +16,7 @@ const navItems: { id: PanelType; label: string; icon: ElementType }[] = [
   { id: 'knowledge', label: 'Knowledge', icon: BookOpen },
   { id: 'memory', label: 'Memory', icon: Brain },
   { id: 'heartbeat', label: 'Heartbeat', icon: Activity },
+  { id: 'repository-map', label: 'Repository Map', icon: Network },
   { id: 'slack', label: 'Slack', icon: MessageSquare },
   { id: 'models', label: 'Models', icon: Brain },
   { id: 'training', label: 'Training Review', icon: ClipboardCheck },

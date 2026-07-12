@@ -20,6 +20,7 @@ from conversation_store import get_conversation, list_conversations, save_conver
 from memory_store import delete_memory, memory_context, memory_status, save_memory, search_memories
 from heartbeat_service import HeartbeatService
 from slack_connector import SlackConnector, _validate_token
+from repository_map import RepositoryMapSource
 
 
 @pytest.fixture(autouse=True)
@@ -230,6 +231,35 @@ def test_knowledge_index_builds_and_searches(tmp_path, monkeypatch):
     assert built.json()["chunks"] == 1
     assert search.status_code == 200
     assert "manuals should feed retrieval" in search.json()["context"]
+
+
+def test_repository_map_sync_writes_provenance_and_indexes_knowledge(tmp_path, monkeypatch):
+    knowledge_root = tmp_path / "knowledge"
+    monkeypatch.setenv("ZEUSAI_KNOWLEDGE_DIR", str(knowledge_root))
+    manifest_url = "https://example.test/repos.json"
+    responses = {
+        manifest_url: json.dumps({
+            "owner": "example-owner",
+            "repos": [{
+                "name": "world",
+                "url": "https://github.com/example/world",
+                "summary_file": "summaries/world.md",
+                "summary": "A searchable world project.",
+                "ai_notes": "Use its source map.",
+            }],
+        }),
+        "https://example.test/summaries/world.md": "# World\n\nVerified project summary for Zeus.",
+    }
+    monkeypatch.setattr("repository_map._fetch_text", lambda url: responses[url])
+
+    result = asyncio.run(RepositoryMapSource().sync(manifest_url=manifest_url))
+
+    assert result["repository_count"] == 1
+    assert result["summary_count"] == 1
+    assert (knowledge_root / "project_docs" / "repository-map" / "summaries" / "world.md").exists()
+    provenance = json.loads((knowledge_root / "project_docs" / "repository-map" / "provenance.json").read_text(encoding="utf-8"))
+    assert provenance["artifacts"][0]["source_url"] == "https://example.test/summaries/world.md"
+    assert result["knowledge_index"]["files_indexed"] == 4
 
 
 def test_agent_lists_files_without_shell_or_llm_wait():

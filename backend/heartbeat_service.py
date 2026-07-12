@@ -17,6 +17,7 @@ from config import (
 )
 from knowledge_index import knowledge_status
 from memory_store import memory_status
+from repository_map import repository_map
 from ollama_client import ollama
 from tools import get_tool_definitions
 
@@ -89,6 +90,7 @@ class HeartbeatService:
                     },
                     "memory": memory_status(),
                     "knowledge": knowledge_status(),
+                    "repository_map": repository_map.status(),
                 }
                 tasks = _curiosity_tasks(observation)
                 observation["curiosity_tasks"] = tasks
@@ -176,6 +178,7 @@ def _curiosity_tasks(observation: dict[str, Any]) -> list[dict[str, str]]:
     capabilities = observation["capabilities"]
     knowledge = observation["knowledge"]
     memory = observation["memory"]
+    repository_map_status = observation["repository_map"]
     if not capabilities["models"]:
         tasks.append({"kind": "runtime", "task": "No local model was observed. Start Ollama and install a tool-capable model."})
     else:
@@ -186,6 +189,8 @@ def _curiosity_tasks(observation: dict[str, Any]) -> list[dict[str, str]]:
         tasks.append({"kind": "memory", "task": "Add an inspectable preference, decision, or active project note to Zeus Memory."})
     if capabilities["full_computer_access"]:
         tasks.append({"kind": "desktop", "task": "Inspect the current desktop task context before taking actions; save screenshots only when a reviewable artifact is useful."})
+    if not repository_map_status["last_sync_at"]:
+        tasks.append({"kind": "sources", "task": "Sync the Repository Map source so Zeus can search verified project summaries with provenance."})
     tasks.append({"kind": "sources", "task": "Check the source-adapter queue and select one evidence source to normalize with provenance."})
     return tasks
 

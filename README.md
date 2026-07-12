@@ -2,7 +2,7 @@
 
 Zeus AI Workbench is a local FastAPI + React/Vite desktop workbench for working with Ollama models, local files, desktop tools, local RAG, and Zeus-owned-model experiments.
 
-The base application does not require cloud APIs, paid services, secrets, API keys, or telemetry. Optional connectors such as Slack are not implemented yet and must keep their credentials outside Git.
+The base application does not require cloud APIs, paid services, secrets, API keys, or telemetry. Optional connectors such as Slack keep their credentials in local operating-system storage, never in Git.
 
 Zeus now also includes the first Zeus-native model track. Ollama/Qwen can remain a temporary runtime or communication layer, but `training/` contains a from-scratch `Zeus-Tiny` path for building local Zeus-owned weights over time.
 
@@ -177,6 +177,12 @@ The desktop app includes a Knowledge panel for rebuilding and searching the loca
 
 In the packaged desktop app, Zeus Knowledge defaults to `%LOCALAPPDATA%\Zeus AI\knowledge`.
 
+### Repository Map Source
+
+The Repository Map panel imports a public `repos.json` manifest and its declared project summaries into local Knowledge. Zeus records the manifest URL, fetch time, and SHA-256 content hashes in `knowledge/project_docs/repository-map/provenance.json`, then rebuilds local search. This is a factual retrieval lane, not automatic private memory or model training.
+
+The default source is the public [Summary-Of-repos-Memory-linker](https://github.com/JaronKBragg7337/Summary-Of-repos-Memory-linker) manifest. The linked Heartbeat Observatory view at [HeartbeatCenter](https://www.heartbeatobservatory.com/HeartbeatCenter/) renders that same manifest at runtime, so the 3D directory and Zeus use one canonical public inventory.
+
 Evaluator/scoring data can be built separately:
 
 ```powershell
@@ -217,6 +223,7 @@ API:
 - File list/read/write: constrained to allowed roots
 - RAG upload/query: local only
 - Knowledge status/index/search: local factual retrieval under `knowledge/`
+- Repository Map status/sync: `GET /api/sources/repository-map/status`, `POST /api/sources/repository-map/sync`
 
 By default, file access is limited to the repo root. To allow additional project folders:
 

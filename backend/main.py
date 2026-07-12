@@ -14,7 +14,7 @@ from models import (
     ChatRequest, ChatMessage, ModelPullRequest,
     ProjectPath, FileOperation, AgentTask, ToolCall, RAGQuery, TrainingCorrection, TrainingReview,
     TrainingEvaluateRequest, KnowledgeSearchRequest, ConversationSaveRequest, MemoryUpsert, HeartbeatConfig,
-    SlackConfigRequest, SlackMessageRequest
+    SlackConfigRequest, SlackMessageRequest, RepositoryMapSyncRequest
 )
 from ollama_client import ollama
 from zeus_native_client import zeus_native
@@ -39,6 +39,7 @@ from conversation_store import get_conversation, list_conversations, save_conver
 from memory_store import delete_memory, list_memories, memory_context, memory_status, save_memory, search_memories
 from heartbeat_service import heartbeat
 from slack_connector import slack_connector
+from repository_map import RepositoryMapError, repository_map
 
 app = FastAPI(
     title="Zeus AI Workbench",
@@ -133,6 +134,19 @@ async def send_slack_message(req: SlackMessageRequest):
         return await slack_connector.send_message(req.channel, req.text)
     except RuntimeError as error:
         raise HTTPException(409, str(error)) from error
+
+
+@app.get("/api/sources/repository-map/status")
+async def repository_map_status():
+    return repository_map.status()
+
+
+@app.post("/api/sources/repository-map/sync")
+async def repository_map_sync(req: RepositoryMapSyncRequest):
+    try:
+        return await repository_map.sync(manifest_url=req.manifest_url, rebuild_index=req.rebuild_index)
+    except RepositoryMapError as error:
+        raise HTTPException(502, str(error)) from error
 
 # ─── Models ───
 @app.get("/api/models")
